@@ -3,6 +3,15 @@ import math
 import numpy as np
 
 
+def option(opt):
+    match opt:
+        case 1: return "akiyo"
+        case 2: return "bowing"
+        case 3: return "bus"
+        case 4: return "city"
+        case 5: return "crew"
+
+
 def psnr(img1, img2):
     mse = np.mean((img1 - img2) ** 2)
     if mse == 0:
@@ -50,9 +59,18 @@ def ssim(img1, img2):
     else:
         raise ValueError('Wrong input image dimensions.')
 
+
 # read video from file
-cap = cv2.VideoCapture('assets/cover_videos/akiyo_cif.y4m')
-cap1 = cv2.VideoCapture('assets/stego_videos/akiyo_stego.avi')
+flag = False
+while not flag:
+    print("1. akiyo\n2. bowing\n3. bus\n4. city\n5. crew\n")
+    opt = int(input("Select video: "))
+    if (opt > 0 and opt < 6):
+        flag = True
+
+filename = option(opt)
+cap = cv2.VideoCapture(f'assets/cover_videos/{filename}_cif.y4m')
+cap1 = cv2.VideoCapture(f'assets/stego_videos/{filename}_stego.avi')
 
 while True:
     ret, frame = cap.read()
@@ -65,10 +83,12 @@ while True:
 
     print("SSIM: " + str(ssim(frame, frame1)))
 
-    cv2.imshow('Akiyo Frames', frame)  # show frame
+    break
 
-    if cv2.waitKey(1) & 0xFF == ord('q'):  # on press of q break
-        break
+    # cv2.imshow('Akiyo Frames', frame)  # show frame
+
+    # if cv2.waitKey(1) & 0xFF == ord('q'):  # on press of q break
+    #     break
 
 # release and destroy windows
 cap.release()

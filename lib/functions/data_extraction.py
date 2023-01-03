@@ -40,13 +40,13 @@ while True:
         break  # break if no next frame
 
     data = ""
-    for x in range(0, int(width)):
+    for i in range(0, int(height)):
         flag = False
 
-        for y in range(0, int(height)):
-            a = frame[y, x, 0] - (math.floor(frame[y, x, 0] / 8) * 8)
-            b = frame[y, x, 1] - (math.floor(frame[y, x, 1] / 8) * 8)
-            c = frame[y, x, 2] - (math.floor(frame[y, x, 2] / 4) * 4)
+        for j in range(0, int(width)):
+            a = frame[i, j, 0] - (math.floor(frame[i, j, 0] / 8) * 8)
+            b = frame[i, j, 1] - (math.floor(frame[i, j, 1] / 8) * 8)
+            c = frame[i, j, 2] - (math.floor(frame[i, j, 2] / 4) * 4)
 
             ch = chr(binaryToDecimal(decimalToBinary(a, 3) +
                      decimalToBinary(b, 3) + decimalToBinary(c, 2)))

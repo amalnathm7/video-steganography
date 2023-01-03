@@ -11,7 +11,7 @@ def binaryToDecimal(n):
 
 
 # read video from file
-cap = cv2.VideoCapture('assets/akiyo_stego.avi')
+cap = cv2.VideoCapture('assets/stego_videos/akiyo_stego.avi')
 video_fps = cap.get(cv2.CAP_PROP_FPS)
 total_frames = cap.get(cv2.CAP_PROP_FRAME_COUNT)
 height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
@@ -35,7 +35,9 @@ while True:
                      decimalToBinary(b, 3) + decimalToBinary(c, 2)))
 
             if (ch == '$'):
-                print("Extracted data: " + data)
+                file = open("assets/extracted_files/texts/output.txt", "w")
+                print("Output file at assets/extracted_files/texts/output.txt successfully created")
+                file.write(data)
                 flag = True
                 break
             else:

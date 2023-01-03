@@ -16,34 +16,39 @@ width = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
 print(
     f"Frame Per second: {video_fps}\nTotal Frames: {total_frames}\nHeight: {height}\nWidth: {width}")
 
-data = input("Enter secret data: ")
+file = open("assets/secret_files/texts/input.txt", "r")
+data = file.read()
 data = data + "$"
 
 fourcc = cv2.VideoWriter_fourcc(*'HFYU')
-writer = cv2.VideoWriter('assets/akiyo_stego.avi', apiPreference=0, fourcc=fourcc,
+writer = cv2.VideoWriter('assets/stego_videos/akiyo_stego.avi', apiPreference=0, fourcc=fourcc,
                          fps=video_fps, frameSize=(int(width), int(height)))
+
+flag = True
 
 while True:
     ret, frame = cap.read()
     if not ret:
         break  # break if no next frame
 
-    for i in range(0, len(data)):
-        binary = decimalToBinary(ord(data[i]))
+    if(flag):
+        for i in range(0, len(data)):
+            binary = decimalToBinary(ord(data[i]))
 
-        frame[i, 0, 0] = math.floor(
-            frame[i, 0, 0] / 8) * 8 + (int(binary[2]) + int(binary[1]) * 2 + int(binary[0]) * 4)
-        frame[i, 0, 1] = math.floor(
-            frame[i, 0, 1] / 8) * 8 + (int(binary[5]) + int(binary[4]) * 2 + int(binary[3]) * 4)
-        frame[i, 0, 2] = math.floor(
-            frame[i, 0, 2] / 4) * 4 + (int(binary[7]) + int(binary[6]) * 2)
+            frame[i, 0, 0] = math.floor(
+                frame[i, 0, 0] / 8) * 8 + (int(binary[2]) + int(binary[1]) * 2 + int(binary[0]) * 4)
+            frame[i, 0, 1] = math.floor(
+                frame[i, 0, 1] / 8) * 8 + (int(binary[5]) + int(binary[4]) * 2 + int(binary[3]) * 4)
+            frame[i, 0, 2] = math.floor(
+                frame[i, 0, 2] / 4) * 4 + (int(binary[7]) + int(binary[6]) * 2)
 
     writer.write(frame)  # write frame
 
-    cv2.imshow('Akiyo Frames', frame)  # show frame
+    flag = False
+    # cv2.imshow('Akiyo Frames', frame)  # show frame
 
-    if cv2.waitKey(1) & 0xFF == ord('q'):  # on press of q break
-        break
+    # if cv2.waitKey(1) & 0xFF == ord('q'):  # on press of q break
+    #     break
 
 # release and destroy windows
 print("Embedded successfully")

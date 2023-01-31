@@ -1,5 +1,6 @@
 import cv2
 import math
+import os
 
 
 def option(opt):
@@ -40,6 +41,8 @@ while not flag:
 print(
     f"Frame Per second: {video_fps}\nTotal Frames: {total_frames}\nHeight: {height}\nWidth: {width}")
 
+if not os.path.exists('assets/stego_videos'):
+   os.makedirs('assets/stego_videos')
 fourcc = cv2.VideoWriter_fourcc(*'HFYU')
 writer = cv2.VideoWriter(f'assets/stego_videos/{filename}_stego.avi', apiPreference=0, fourcc=fourcc,
                          fps=video_fps, frameSize=(int(width), int(height)))

@@ -47,20 +47,21 @@ def text_embedding():
     writer = cv2.VideoWriter(f'assets/stego_videos/{filename}_stego.avi', apiPreference=0, fourcc=fourcc,
                              fps=video_fps, frameSize=(int(width), int(height)))
 
-    flag = True
+    frame_no = 0
+    selected_frames = [1, 5, 11, 33, 85, 156, 164, 192, 220, 280, 300]
 
     while True:
         ret, frame = cap.read()
         if not ret:
             break
 
-        if (flag):
-            flag = False
+        frame_no = frame_no + 1
 
+        if frame_no in selected_frames:
             count = 0
 
             for i in range(0, int(height)):
-                flag1 = False
+                flag = False
 
                 for j in range(0, int(width)):
                     binary = decimalToBinary(ord(data[count]))
@@ -75,10 +76,10 @@ def text_embedding():
                     count = count+1
 
                     if (count == len(data)):
-                        flag1 = True
+                        flag = True
                         break
 
-                if (flag1):
+                if (flag):
                     break
 
         writer.write(frame)

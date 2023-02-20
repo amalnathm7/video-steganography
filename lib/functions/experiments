@@ -1,6 +1,7 @@
 import cv2
 import math
 import numpy as np
+from sewar.full_ref import psnr, ssim
 
 
 def option(opt):
@@ -12,7 +13,7 @@ def option(opt):
         case 5: return "crew"
 
 
-def psnr(img1, img2):
+def psnr1(img1, img2):
     mse = np.mean((img1 - img2) ** 2)
     if mse == 0:
         return 100
@@ -43,7 +44,7 @@ def calculate_ssim(img1, img2):
     return ssim_map.mean()
 
 
-def ssim(img1, img2):
+def ssim1(img1, img2):
     if not img1.shape == img2.shape:
         raise ValueError('Input images must have the same dimensions.')
     if img1.ndim == 2:

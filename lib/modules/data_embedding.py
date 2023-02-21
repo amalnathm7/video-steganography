@@ -48,7 +48,7 @@ def text_embedding():
                              fps=video_fps, frameSize=(int(width), int(height)))
 
     frame_no = 0
-    selected_frames = [1, 5, 11, 33, 85, 156, 164, 192, 220, 280, 300]
+    selected_frames = [77, 84, 85, 86, 87, 88, 89, 91, 102, 299]
 
     while True:
         ret, frame = cap.read()

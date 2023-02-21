@@ -36,6 +36,15 @@ width = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
 
 while True:
     ret, frame = cap.read()
+    ret, frame = cap.read()
+    ret, frame = cap.read()
+    ret, frame = cap.read()
+    ret, frame = cap.read()
+    ret, frame = cap.read()
+    ret, frame = cap.read()
+    ret, frame = cap.read()
+    ret, frame = cap.read()
+    ret, frame = cap.read()
     if not ret:
         break  # break if no next frame
 

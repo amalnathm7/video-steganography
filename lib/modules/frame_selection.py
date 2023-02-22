@@ -49,7 +49,7 @@ while True:
         prev_hist = hist
         continue
 
-    hist_list.append(cv2.compareHist(prev_hist, hist, cv2.HISTCMP_CHISQR))
+    hist_list.append(cv2.compareHist(prev_hist, hist, cv2.HISTCMP_CHISQR_ALT))
     prev_hist = hist
     frame_count += 1
 

@@ -121,7 +121,7 @@ def lsb332_extraction(cap, type):
     while True:
         ret, frame = cap.read()
         if not ret:
-            break  # break if no next frame
+            break
 
         frame_no = frame_no + 1
 
@@ -208,8 +208,6 @@ def lsb332_extraction(cap, type):
             if (flag):
                 break
 
-    # release and destroy windows
-    # print(pixels)
     cap.release()
     cv2.destroyAllWindows()
 
@@ -224,7 +222,6 @@ def main():
         if (opt > 0 and opt < 6):
             flag = True
 
-    # read video from file
     filename = option(opt)
     cap = cv2.VideoCapture(f'assets/stego_videos/{filename}_stego.avi')
     flag = True

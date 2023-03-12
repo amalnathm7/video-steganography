@@ -28,10 +28,8 @@ def text_to_binary():
 
 
 def image_to_binary():
-    # Load the image file
     img = Image.open('assets/secret_files/images/input.jpg')
 
-    # Get the RGB values for each pixel in the image
     rgb_im = img.convert('RGB')
 
     width, height = img.size
@@ -51,7 +49,7 @@ def image_to_binary():
 
 
 def video_to_binary():
-    print("")
+    pass
 
 
 def lsb332_embedding(cap, writer, binary_data):

@@ -53,8 +53,10 @@ def video_to_binary(file_path):
 
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    video_fps = int(cap.get(cv2.CAP_PROP_FPS))
+    total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
 
-    data = "{}${}$".format(width, height)
+    data = "{}${}${}${}$".format(width, height, video_fps, total_frames)
     binary_data = [format(ord(char), '08b') for char in data]
 
     while True:

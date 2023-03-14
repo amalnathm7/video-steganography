@@ -1,6 +1,7 @@
 import cv2
 import math
 from PIL import Image
+import numpy as np
 
 
 def option(opt):
@@ -261,9 +262,13 @@ def lsb332_extraction(cap, type):
     flag = False
     height = -1
     width = -1
+    total_frames = -1
+    fps = -1
+    frame_index = 1
     pixels = []
     index = 0
     rgb = ()
+    img_array = []
 
     while True:
         ret, frame = cap.read()
@@ -344,8 +349,58 @@ def lsb332_extraction(cap, type):
                                 flag = True
                                 break
                         elif (type == 3):
-                            pass
+                            if (extracted_len == -1 and ch == '$'):
+                                if (width == -1):
+                                    width = int(data)
+                                    data = ""
+                                elif (height == -1):
+                                    height = int(data)
+                                    data = ""
+                                elif (fps == -1):
+                                    fps = int(data)
+                                    data = ""
+                                elif (total_frames == -1):
+                                    total_frames = int(data)
+                                    data = ""
+                                    len = height * width * 3
+                                    extracted_len = 0
+                            elif extracted_len < len:
+                                if (extracted_len == -1):
+                                    data += ch
+                                else:
+                                    index = (index + 1) % 3
 
+                                    if (index == 0):
+                                        rgb += (num,)
+                                        pixels.append(rgb)
+                                        rgb = ()
+                                    else:
+                                        rgb += (num,)
+
+                                    extracted_len += 1
+                            else:
+                                img = Image.new(
+                                    'RGB', (width, height), color=0)
+                                img.putdata(pixels)
+                                
+                                img_array.append(np.array(img))
+                                
+                                frame_index += 1
+                                
+                                if(frame_index == total_frames):
+                                    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+                                    video_writer = cv2.VideoWriter('assets/extracted_files/videos/output.mp4', fourcc, fps, (width, height))
+
+                                    for array in img_array:
+                                        video_writer.write(array)
+
+                                    print(
+                                        "Output file at assets/extracted_files/videos/output.mp4 successfully created")
+                                    
+                                    flag = True
+                                    break
+                                else:
+                                    pixels.clear()
                     if (flag):
                         break
 

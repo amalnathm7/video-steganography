@@ -17,39 +17,62 @@ def option(opt):
         case 5: return "crew"
 
 
-def text_to_binary():
-    file = open("assets/secret_files/texts/input.txt", "r")
+def text_to_binary(file_path):
+    file = open(file_path, "r")
     data = file.read()
     data = str(len(data)) + "$" + data
 
-    binary_data = ''.join(format(ord(char), '08b') for char in data)
+    binary_data = [format(ord(char), '08b') for char in data]
 
     return binary_data
 
 
-def image_to_binary():
-    img = Image.open('assets/secret_files/images/input.jpg')
+def image_to_binary(file_path):
+    img = Image.open(file_path)
 
     rgb_im = img.convert('RGB')
 
     width, height = img.size
 
     data = "{}${}$".format(width, height)
-    binary_data = ''.join(format(ord(char), '08b') for char in data)
+    binary_data = [format(ord(char), '08b') for char in data]
 
     for x in range(height):
         for y in range(width):
             r, g, b = rgb_im.getpixel((y, x))
 
-            binary_data += int_to_binary(r)
-            binary_data += int_to_binary(g)
-            binary_data += int_to_binary(b)
-    
+            binary_data.append(int_to_binary(r))
+            binary_data.append(int_to_binary(g))
+            binary_data.append(int_to_binary(b))
+
     return binary_data
 
 
-def video_to_binary():
-    pass
+def video_to_binary(file_path):
+    cap = cv2.VideoCapture(file_path)
+
+    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+
+    data = "{}${}$".format(width, height)
+    binary_data = [format(ord(char), '08b') for char in data]
+
+    while True:
+        ret, frame = cap.read()
+        if not ret:
+            break
+
+        rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+
+        for x in range(height):
+            for y in range(width):
+                r, g, b = rgb_frame[x][y]
+
+                binary_data.append(int_to_binary(r))
+                binary_data.append(int_to_binary(g))
+                binary_data.append(int_to_binary(b))
+
+    return binary_data
 
 
 def lsb332_embedding(cap, writer, binary_data):
@@ -57,84 +80,231 @@ def lsb332_embedding(cap, writer, binary_data):
         1: [
             {
                 'start': (0, 0),
-                'end': (200, 200),
+                'end': (287, 351),
             },
         ],
 
         2: [
             {
                 'start': (0, 0),
-                'end': (200, 200),
+                'end': (287, 351),
             },
         ],
 
         3: [
             {
                 'start': (0, 0),
-                'end': (200, 200),
+                'end': (287, 351),
             },
         ],
 
         4: [
             {
                 'start': (0, 0),
-                'end': (200, 200),
+                'end': (287, 351),
             },
         ],
 
         5: [
             {
                 'start': (0, 0),
-                'end': (200, 200),
+                'end': (287, 351),
             },
         ],
 
         6: [
             {
                 'start': (0, 0),
-                'end': (200, 200),
+                'end': (287, 351),
             },
         ],
 
         7: [
             {
                 'start': (0, 0),
-                'end': (200, 200),
+                'end': (287, 351),
             },
         ],
 
         8: [
             {
                 'start': (0, 0),
-                'end': (200, 200),
+                'end': (287, 351),
             },
         ],
 
         9: [
             {
                 'start': (0, 0),
-                'end': (200, 200),
+                'end': (287, 351),
             },
         ],
 
         10: [
             {
                 'start': (0, 0),
-                'end': (200, 200),
+                'end': (287, 351),
             },
         ],
 
         11: [
             {
                 'start': (0, 0),
-                'end': (200, 200),
+                'end': (287, 351),
             },
         ],
 
         12: [
             {
                 'start': (0, 0),
-                'end': (200, 200),
+                'end': (287, 351),
+            },
+        ],
+
+        13: [
+            {
+                'start': (0, 0),
+                'end': (287, 351),
+            },
+        ],
+
+        14: [
+            {
+                'start': (0, 0),
+                'end': (287, 351),
+            },
+        ],
+
+        15: [
+            {
+                'start': (0, 0),
+                'end': (287, 351),
+            },
+        ],
+
+        16: [
+            {
+                'start': (0, 0),
+                'end': (287, 351),
+            },
+        ],
+
+        17: [
+            {
+                'start': (0, 0),
+                'end': (287, 351),
+            },
+        ],
+
+        18: [
+            {
+                'start': (0, 0),
+                'end': (287, 351),
+            },
+        ],
+
+        19: [
+            {
+                'start': (0, 0),
+                'end': (287, 351),
+            },
+        ],
+
+        20: [
+            {
+                'start': (0, 0),
+                'end': (287, 351),
+            },
+        ],
+
+        21: [
+            {
+                'start': (0, 0),
+                'end': (287, 351),
+            },
+        ],
+
+        22: [
+            {
+                'start': (0, 0),
+                'end': (287, 351),
+            },
+        ],
+
+        23: [
+            {
+                'start': (0, 0),
+                'end': (287, 351),
+            },
+        ],
+
+        24: [
+            {
+                'start': (0, 0),
+                'end': (287, 351),
+            },
+        ],
+
+        25: [
+            {
+                'start': (0, 0),
+                'end': (287, 351),
+            },
+        ],
+
+        26: [
+            {
+                'start': (0, 0),
+                'end': (287, 351),
+            },
+        ],
+
+        27: [
+            {
+                'start': (0, 0),
+                'end': (287, 351),
+            },
+        ],
+
+        28: [
+            {
+                'start': (0, 0),
+                'end': (287, 351),
+            },
+        ],
+
+        29: [
+            {
+                'start': (0, 0),
+                'end': (287, 351),
+            },
+        ],
+
+        30: [
+            {
+                'start': (0, 0),
+                'end': (287, 351),
+            },
+        ],
+
+        31: [
+            {
+                'start': (0, 0),
+                'end': (287, 351),
+            },
+        ],
+
+        32: [
+            {
+                'start': (0, 0),
+                'end': (287, 351),
+            },
+        ],
+
+        33: [
+            {
+                'start': (0, 0),
+                'end': (287, 351),
             },
         ],
     }
@@ -163,7 +333,8 @@ def lsb332_embedding(cap, writer, binary_data):
 
                 for i in range(0, region_height):
                     for j in range(0, region_width):
-                        binary = binary_data[count:count+8]
+                        binary = binary_data[count]
+                        count += 1
 
                         region[i, j, 0] = math.floor(
                             region[i, j, 0] / 8) * 8 + (int(binary[2]) + int(binary[1]) * 2 + int(binary[0]) * 4)
@@ -171,8 +342,6 @@ def lsb332_embedding(cap, writer, binary_data):
                             region[i, j, 1] / 8) * 8 + (int(binary[5]) + int(binary[4]) * 2 + int(binary[3]) * 4)
                         region[i, j, 2] = math.floor(
                             region[i, j, 2] / 4) * 4 + (int(binary[7]) + int(binary[6]) * 2)
-
-                        count = count+8
 
                         if (count == len(binary_data)):
                             flag = True
@@ -190,6 +359,7 @@ def lsb332_embedding(cap, writer, binary_data):
         print("\nData is large!")
     else:
         print("\nEmbedded successfully")
+    
     writer.release()
     cap.release()
 
@@ -233,13 +403,13 @@ def main():
 
         if (file_type == 1):
             lsb332_embedding(cap=cap, writer=writer,
-                             binary_data=text_to_binary())
+                             binary_data=text_to_binary("assets/secret_files/texts/input.txt"))
         elif (file_type == 2):
             lsb332_embedding(cap=cap, writer=writer,
-                             binary_data=image_to_binary())
+                             binary_data=image_to_binary('assets/secret_files/images/input.jpg'))
         elif (file_type == 3):
-            lsb332_embedding(cap=cap, writer=writer,
-                             binary_data=video_to_binary())
+            lsb332_embedding(cap=cap, writer=writer, binary_data=video_to_binary(
+                'assets/secret_files/videos/input.y4m'))
         else:
             print("Invalid option!")
             flag = True

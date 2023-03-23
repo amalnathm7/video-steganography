@@ -1,4 +1,4 @@
-#Code to implement region selection with grey wolf optimisation and PCA analysis
+# Code to implement region selection with grey wolf optimisation and PCA analysis
 
 import cv2
 import pywt
@@ -11,241 +11,261 @@ import matplotlib.pyplot as plt
 from scipy.stats import kurtosis
 from scipy.stats import entropy
 
+
+def option(opt):
+    match opt:
+        case 1: return "akiyo"
+        case 2: return "bowing"
+        case 3: return "bus"
+        case 4: return "city"
+        case 5: return "crew"
+
+
 def GetEnergy(img):
     entropies = entropy(img.flatten())
     return np.mean(entropies)
-    #return (img ** 2).sum()/img.size
+    # return (img ** 2).sum()/img.size
+
 
 def GetIntensity(img):
     diff = np.abs(np.diff(img.flatten()))
     return np.mean(diff)
-    #return img.sum()/img.size
+    # return img.sum()/img.size
+
 
 def GetCoverage(img):
-   return np.count_nonzero(img)/img.size
-   #threshold = 30
-   #similar = np.sum(np.abs(np.diff(img))< threshold)
-   #return similar/img.size
+    return np.count_nonzero(img)/img.size
+    # threshold = 30
+    # similar = np.sum(np.abs(np.diff(img))< threshold)
+    # return similar/img.size
 
 
 def GetKurtosis(img):
     return kurtosis(img.flatten())
 
-def get_fitness(frame,i,j,msg_size):
-    img =  frame[i:i+msg_size,j:j+1]
+
+def get_fitness(frame, i, j, msg_size):
+    img = frame[i:i+msg_size, j:j+1]
     Energy = GetEnergy(img)
     Intensity = GetIntensity(img)
     Kurtosis = GetKurtosis(img)
     Coverage = GetCoverage(img)
-    #print(" Energy = {}, Intensity = {}, Kurtosis = {}, Coverage = {}".format(Energy,Intensity,Kurtosis,Coverage))
-    Fitness = (Energy +(1- Intensity) +Kurtosis+Coverage)/4
-    #print("Fitness = {}".format(Fitness))
+    # print(" Energy = {}, Intensity = {}, Kurtosis = {}, Coverage = {}".format(Energy,Intensity,Kurtosis,Coverage))
+    Fitness = (Energy + (1 - Intensity) + Kurtosis+Coverage)/4
+    # print("Fitness = {}".format(Fitness))
 
-    #return np.var(img)
+    # return np.var(img)
     return Fitness
 
-def Get_Index(regions,i,j):
+
+def Get_Index(regions, i, j):
     for region in regions:
-        if(region['row'] == i and region['col'] == j):
+        if (region['row'] == i and region['col'] == j):
             return region['index']
 
     return -1
 
+
 def Absolute(array):
     return [abs(x) for x in array]
 
-def Get_Alpha(wolves,regions):
+
+def Get_Alpha(wolves, regions):
     alpha_fitness = -np.inf
-    alpha= [0,0]
+    alpha = [0, 0]
     beta_fitness = -np.inf
-    beta = [0,0]
+    beta = [0, 0]
     delta_fitness = -np.inf
-    delta = [0,0]
+    delta = [0, 0]
     for wolf in wolves:
         i = wolf[0]
         j = wolf[1]
-        
-        index = Get_Index(regions,i,j)
-        
-        #print("index = ",index)
-        if(index >= len(regions)):
+
+        index = Get_Index(regions, i, j)
+
+        # print("index = ",index)
+        if (index >= len(regions)):
             index = len(regions) - 1
-        if(index != -1):
-            if(alpha_fitness < regions[index]['fitness']):
+        if (index != -1):
+            if (alpha_fitness < regions[index]['fitness']):
                 delta_fitness = beta_fitness
                 delta = beta
 
                 beta_fitness = alpha_fitness
                 beta = alpha
                 alpha_fitness = regions[index]['fitness']
-                alpha = [regions[index]['row'],regions[index]['col']]
+                alpha = [regions[index]['row'], regions[index]['col']]
         else:
-            print("The regions not found: {} {}".format(i,j))
-    
-    return (alpha,beta,delta)
-    
-def Get_Robust_Regions(frame,height,width,msg_size):
+            print("The regions not found: {} {}".format(i, j))
 
+    return (alpha, beta, delta)
+
+
+def Get_Robust_Regions(frame, height, width, msg_size):
     """Initialising population and the initial wolf population"""
     population = 20
     regions = []
-    values = [[x,y*msg_size] for x in range(math.floor(height)) for y in range(math.floor(width/msg_size))]
-    wolves = random.choices(values,k=20)
-    #print(wolves)
-
+    values = [[x, y*msg_size]
+              for x in range(math.floor(height)) for y in range(math.floor(width/msg_size))]
+    wolves = random.choices(values, k=20)
+    # print(wolves)
 
     r = 0
     a = 2
     iterations = 10
 
     """Setting up the grids and finding their fitness functions"""
-    for i in range(0,int(height)):
-        for j in range(0,int(width),msg_size):
+    for i in range(0, int(height)):
+        for j in range(0, int(width), msg_size):
             d = {}
             d['row'] = i
             d['col'] = j
             d['row_end'] = i+msg_size
-            r+=1
+            r += 1
             d['index'] = r
             d['fitness'] = get_fitness(frame, i, j, msg_size)
             regions.append(d)
 
-    """Get the initial values of alpha,beta and delta from the current population"""   
-   # print(regions)
+    """Get the initial values of alpha,beta and delta from the current population"""
+    # print(regions)
     r1 = random.random()
     r2 = random.random()
     G = (2*a*r1) - a
     H = 2*r2
-    alpha,beta,delta = Get_Alpha(wolves,regions)
-    #print(alpha,beta,delta)
-        
-    #print("Len=",len(regions))
-    t=0
-    while(t < iterations):
+    alpha, beta, delta = Get_Alpha(wolves, regions)
+    # print(alpha,beta,delta)
+
+    # print("Len=",len(regions))
+    t = 0
+    while (t < iterations):
         i = 0
         for wolf in wolves:
-            
-            #P1- Alpha
-            a = np.array([2 - t*((2)/iterations),2 - t*((2)/iterations)])
+
+            # P1- Alpha
+            a = np.array([2 - t*((2)/iterations), 2 - t*((2)/iterations)])
             r1 = np.random.rand(2)
-            r2 =np.random.rand(2)
+            r2 = np.random.rand(2)
             G1 = (2*a).dot(r1) - a
             H1 = 2*r2
-            K_alpha =Absolute(G1.dot(alpha) - wolf) 
-            p1 = Absolute(alpha - H1.dot(K_alpha)) 
+            K_alpha = Absolute(G1.dot(alpha) - wolf)
+            p1 = Absolute(alpha - H1.dot(K_alpha))
             p1 = np.array(p1)
-            if(p1[0] >= height):
+            if (p1[0] >= height):
                 p1[0] = height-1
-            if(p1[1] >= width):
+            if (p1[1] >= width):
                 p1[1] = width-1
-            #print("r1 = {}, r2 ={}, G1= {}, H1={},alpha = {}, K_alpha={},p1={}".format(r1,r2,G1,H1,alpha,K_alpha,p1))
+            # print("r1 = {}, r2 ={}, G1= {}, H1={},alpha = {}, K_alpha={},p1={}".format(r1,r2,G1,H1,alpha,K_alpha,p1))
 
-            #P2- Beta
-            a = np.array([2 - t*((2)/iterations),2 - t*((2)/iterations)])
+            # P2- Beta
+            a = np.array([2 - t*((2)/iterations), 2 - t*((2)/iterations)])
             r1 = np.random.rand(2)
             r2 = np.random.rand(2)
             G2 = (2*a).dot(r1) - a
             H2 = 2*r2
             K_beta = Absolute(G2.dot(beta) - wolf)
-            p2 = Absolute(beta - H2.dot(K_beta)) 
+            p2 = Absolute(beta - H2.dot(K_beta))
             p2 = np.array(p2)
-            
-            if(p2[0] >= height):
-                p2[0] = height-1
-            if(p2[1] >= width):
-                p2[1] = width-1
-            #print("r1 = {}, r2 ={}, G2= {}, H2={},beta = {}, K_beta={},p2={}".format(r1,r2,G2,H2,beta,K_beta,p2))
 
-            #P3-delta
-            a = np.array([2 - t*((2)/iterations),2 - t*((2)/iterations)])
+            if (p2[0] >= height):
+                p2[0] = height-1
+            if (p2[1] >= width):
+                p2[1] = width-1
+            # print("r1 = {}, r2 ={}, G2= {}, H2={},beta = {}, K_beta={},p2={}".format(r1,r2,G2,H2,beta,K_beta,p2))
+
+            # P3-delta
+            a = np.array([2 - t*((2)/iterations), 2 - t*((2)/iterations)])
             r1 = np.random.rand(2)
             r2 = np.random.rand(2)
             G3 = (2*a).dot(r1) - a
             H3 = 2*r2
-            K_delta = Absolute(G3.dot(delta) - wolf)    
-            p3 = Absolute(delta - H3.dot(K_delta)) 
+            K_delta = Absolute(G3.dot(delta) - wolf)
+            p3 = Absolute(delta - H3.dot(K_delta))
             p3 = np.array(p3)
-            if(p3[0] >= height):
+            if (p3[0] >= height):
                 p3[0] = height-1
-            if(p3[1] >= width):
+            if (p3[1] >= width):
                 p3[1] = width-1
-            #print("r1 = {}, r2 ={}, G3= {}, H3={},delta = {}, K_delta={},p3={}".format(r1,r2,G3,H3, delta,K_delta,p3))
-            
+            # print("r1 = {}, r2 ={}, G3= {}, H3={},delta = {}, K_delta={},p3={}".format(r1,r2,G3,H3, delta,K_delta,p3))
+
             p_next = (p1+p2+p3) * 1/3
-            #print(p_next)
-            
-            #print()
+            # print(p_next)
+
+            # print()
 
             """Bringing the values within their borders"""
-            remain = int(p_next[1])%msg_size
-           
-            if(remain != 0):
+            remain = int(p_next[1]) % msg_size
+
+            if (remain != 0):
                 p_next[1] = int(p_next[1])+msg_size-remain
             else:
-                p_next[1]  = int(p_next[1])
-            
+                p_next[1] = int(p_next[1])
+
             p_next[0] = int(p_next[0])
-            #print("p_next = {}, remian = {}".format(p_next,remain))
-            if(p_next[0] >= height):
+            # print("p_next = {}, remian = {}".format(p_next,remain))
+            if (p_next[0] >= height):
                 remain = height-1
-            if(p_next[1] > width):
-                remain = p_next[1]%msg_size
+            if (p_next[1] > width):
+                remain = p_next[1] % msg_size
                 p_next[1] = p_next[1]-remain-msg_size
             wolves[i] = p_next
-            i+=1
+            i += 1
 
-        (alpha,beta,delta) = Get_Alpha(wolves,regions)
-        #print("Alpha = {}, Beta ={}, Delta={}".format(alpha,beta,delta))
-        
-        t+=1
-        #print()
+        (alpha, beta, delta) = Get_Alpha(wolves, regions)
+        # print("Alpha = {}, Beta ={}, Delta={}".format(alpha,beta,delta))
 
-    
-    
-    if(alpha[0]+1 >= height):
+        t += 1
+        # print()
+
+    if (alpha[0]+1 >= height):
         alpha[0] = int(height)-1-1
-    if(alpha[1]+msg_size >= width):
+    if (alpha[1]+msg_size >= width):
         alpha[1] = int(width) - msg_size-1
     print("\n alpha = {}".format(alpha))
-        
-    img = frame[alpha[0]:alpha[0]+1,alpha[1]:alpha[1]+msg_size]
-    #frame = cv2.rectangle(frame,(alpha[0],alpha[1]), (alpha[0]+msg_size,alpha[1]+1), (255,255,255),2)
-    #cv2.imshow('Bounding Rectangle',frame)
-    #cv2.waitKey(5000)
-    #cv2.imshow('Img',img)
-    #cv2.waitKey(5000)
-    return([(alpha[0],alpha[1]),(alpha[0]+1,alpha[1]+msg_size)])
- 
-def Check_Region(robust_regions,frame_no,b):
+
+    img = frame[alpha[0]:alpha[0]+1, alpha[1]:alpha[1]+msg_size]
+    # frame = cv2.rectangle(frame,(alpha[0],alpha[1]), (alpha[0]+msg_size,alpha[1]+1), (255,255,255),2)
+    # cv2.imshow('Bounding Rectangle',frame)
+    # cv2.waitKey(5000)
+    # cv2.imshow('Img',img)
+    # cv2.waitKey(5000)
+    return ([(alpha[0], alpha[1]), (alpha[0]+1, alpha[1]+msg_size)])
+
+
+def Check_Region(robust_regions, frame_no, b):
     for i in robust_regions[frame_no]:
         if (i['start'] == b['start']) and (i['end'] == b['end']):
             return 1
     return 0
 
-def Set_Coordinates(robust_regions,frame,frame_no,height,width,msg_size):
-    coordinates = Get_Robust_Regions(frame,height,width,msg_size)
+
+def Set_Coordinates(robust_regions, frame, frame_no, height, width, msg_size):
+    coordinates = Get_Robust_Regions(frame, height, width, msg_size)
     b = {}
-    b['start'] = (coordinates[0][0],coordinates[1][0])
-    b['end'] = (coordinates[0][1],coordinates[1][1])
-    if(Check_Region(robust_regions,frame_no,b)) == 0:
+    b['start'] = (coordinates[0][0], coordinates[1][0])
+    b['end'] = (coordinates[0][1], coordinates[1][1])
+    if (Check_Region(robust_regions, frame_no, b)) == 0:
         robust_regions[frame_no].append(b)
     else:
-        robust_regions = Set_Coordinates(robust_regions, frame, frame_no, height, width, msg_size)
+        robust_regions = Set_Coordinates(
+            robust_regions, frame, frame_no, height, width, msg_size)
     return robust_regions
 
 
-def GWO(vid,msg_size,height,width,frame_list):
+def GWO(cap, msg_size, frame_list, no_of_blocks):
     frame_no = 0
     robust_regions = {}
+    height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
+    width = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
+
     while True:
-        ret,frame = vid.read()
+        ret, frame = cap.read()
         if not ret:
             break
-        frame_no+=1
+        frame_no += 1
         if frame_no not in frame_list:
             continue
         robust_regions[frame_no] = []
-        for i in range(0,5):
+        for i in range(0, no_of_blocks):
             """coordinates = Get_Robust_Regions(frame,height,width,msg_size)
             b = {}
             b['start'] = (coordinates[0][0],coordinates[1][0])
@@ -254,9 +274,11 @@ def GWO(vid,msg_size,height,width,frame_list):
                 robust_regions[frame_no].append(b)
             else:
                 coordinates = Get_Robust_Regions(frame,height,width,msg_size)"""
-            robust_regions = Set_Coordinates(robust_regions, frame, frame_no, height, width, msg_size)
-        #print(robust_regions)
+            robust_regions = Set_Coordinates(
+                robust_regions, frame, frame_no, height, width, msg_size)
+        # print(robust_regions)
     return robust_regions
+
 
 def Find_Summation(next_components):
     s = 0
@@ -264,46 +286,51 @@ def Find_Summation(next_components):
         s = s+(i*i)
     return s
 
-def Find_Index_Min(block,value):
+
+def Find_Index_Min(block, value):
     l = []
     mini = 1000000
     ind = -1
     for b in block:
-        if(b['pca']< value):
-            if(b['pca']< mini):
+        if (b['pca'] < value):
+            if (b['pca'] < mini):
                 mini = b['pca']
                 ind = b['index']
     return ind
 
-def pca_analysis(y, msg_size,height,width):
 
-    #if multiple blocks to be selected
-    blocks=[]
+def pca_analysis(y, block_size, height, width, no_of_blocks):
+
+    # if multiple blocks to be selected
+    blocks = []
     b = 0
-    no_of_blocks = 10
-    
 
     max_pca = 0
-    max_row, max_col = 0,0
+    max_row, max_col = 0, 0
+    track = 0
 
-    #Dividing the image into blocks and finding the PCA of each block
-    for i in range(0,int(height),1):
-        for j in range(0,int(width),msg_size):
-            r = y[i:i+msg_size, j:j+msg_size]
+    # Dividing the image into blocks and finding the PCA of each block
+    for i in range(0, int(height), block_size):
+        for j in range(0, int(width), block_size):
+            if((i + block_size >= height) or (j + block_size >= width)):
+                track = 1
+                break
+
+            r = y[i:i+block_size, j:j+block_size]
 
             # NOTE: For storing the data instead of taking nXn matrix take 1xn matrix and check
             # NOTE: For storing the data take ceil(root(n))xceil(root(n)) size of block to fill the entire block
-        
-            #cv2.imshow('t',r)
-            #cv2.waitKey(1000)
+
+            # cv2.imshow('t',r)
+            # cv2.waitKey(1000)
             """Applying PCA to find the first principal component"""
             np.seterr(invalid='ignore')
-            pca =PCA(n_components= 1,svd_solver='full')
-            #print(pca)
-            #npdata =  np.asarray(r)
+            pca = PCA(n_components=1, svd_solver='full')
+            # print(pca)
+            # npdata =  np.asarray(r)
             X = np.array(r)
             pca.fit(X)
-            first_component =  pca.singular_values_
+            first_component = pca.singular_values_
             first_component_sq = first_component**2
 
             """ Applying PCA to find the remaining principal components"""
@@ -311,141 +338,148 @@ def pca_analysis(y, msg_size,height,width):
             Y = np.array(r)
             pca.fit(Y)
             next_components = pca.singular_values_
-            #print(next_components)
+            # print(next_components)
             summation = Find_Summation(next_components)
 
             """Finding the propotion of the first principal component of the image"""
-            if(summation != 0):
+            if (summation != 0):
                 propotion_first_component = first_component_sq/summation
             else:
                 propotion_first_component = -1
 
-            if(len(blocks) < no_of_blocks):
-                block={}
+            if (len(blocks) < no_of_blocks):
+                block = {}
                 block['pca'] = propotion_first_component
-                block['row'] = i 
+                block['row'] = i
                 block['col'] = j
                 block['index'] = b
                 blocks.append(block)
-                b+=1
+                b += 1
             else:
-                #print("Changed")
-                #print(blocks)
-                ind = Find_Index_Min(blocks,propotion_first_component)
-                if(ind != -1):
+                # print("Changed")
+                # print(blocks)
+                ind = Find_Index_Min(blocks, propotion_first_component)
+                if (ind != -1):
                     blocks[ind]['pca'] = propotion_first_component
                     blocks[ind]['row'] = i
                     blocks[ind]['col'] = j
                     blocks[ind]['index'] = ind
 
-
-
-           #print(pca.singular_values_)
+           # print(pca.singular_values_)
             """if(propotion_first_component > max_pca):
                 max_pca = propotion_first_component
                 print(max_pca)
                 max_row = i
                 max_col = j"""
+        if(track == 1):
+            break
 
-    #print(max_row)
-    #print(max_col)
-    #print("The coordinates of image block are: ({},{},{},{})".format(max_row,max_row+msg_size,max_col,max_col+msg_size))
-    #return (max_row,max_row+msg_size,max_col,max_col+msg_size)
+    # print(max_row)
+    # print(max_col)
+    # print("The coordinates of image block are: ({},{},{},{})".format(max_row,max_row+msg_size,max_col,max_col+msg_size))
+    # return (max_row,max_row+msg_size,max_col,max_col+msg_size)
     return blocks
 
-def Get_Regions(blocks,msg_size):
+
+def Get_Regions(blocks, msg_size):
     l = []
     for block in blocks:
 
         b = {}
-        b['start'] = (block['row'],block['col'])
-        b['end'] = (block['row']+msg_size-1,block['col']+msg_size-1)
+        b['start'] = (block['row'], block['col'])
+        b['end'] = (block['row']+msg_size-1, block['col']+msg_size-1)
         l.append(b)
     return l
 
-def PCA_Implementation(vid,msg_size,height,width,frame_list):
+
+def PCA_Implementation(cap, block_size, frame_list, no_of_blocks):
     frame_no = 0
-    robust_regions ={}
+    robust_regions = {}
+
+    height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
+    width = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
+
     while True:
-        ret,frame = vid.read()
+        ret, frame = cap.read()
         if not ret:
             break
         frame_no += 1
         if frame_no not in frame_list:
             continue
-        
-        #Extracting yuv components from the image
+
+        # Extracting yuv components from the image
         yuv_img = cv2.cvtColor(frame, cv2.COLOR_BGR2YUV)
-        cv2.imshow('YUV',yuv_img)
+        cv2.imshow('YUV', yuv_img)
         cv2.waitKey(1000)
 
-        y,u,v = cv2.split(yuv_img)
+        y, u, v = cv2.split(yuv_img)
 
-        block = pca_analysis(y, msg_size,height,width)
-        #print(block)
-        l = Get_Regions(block,msg_size)
+        block = pca_analysis(y, block_size, height, width,
+                             no_of_blocks=no_of_blocks)
+        # print(block)
+        l = Get_Regions(block, block_size)
         robust_regions[frame_no] = l
-        #print(robust_regions)
+        # print(robust_regions)
     return robust_regions
 
-def main():
 
-#Capturing the video
-    vid = cv2.VideoCapture('C:/Users/user/Documents/MyFiles/Project/dataset/akiyo_stego.avi')
+# def main():
 
-    video_fps = vid.get(cv2.CAP_PROP_FPS)
-    total_frames = vid.get(cv2.CAP_PROP_FRAME_COUNT)
-    height = vid.get(cv2.CAP_PROP_FRAME_HEIGHT)
-    width = vid.get(cv2.CAP_PROP_FRAME_WIDTH)
+#     # Capturing the video
+#     vid = cv2.VideoCapture(
+#         'C:/Users/user/Documents/MyFiles/Project/dataset/akiyo_stego.avi')
 
-    print(f"Frame per sec: {video_fps}\n Total FRame: {total_frames}\n Height: {height} \nWidth: {width}")
+#     video_fps = vid.get(cv2.CAP_PROP_FPS)
+#     total_frames = vid.get(cv2.CAP_PROP_FRAME_COUNT)
+#     height = vid.get(cv2.CAP_PROP_FRAME_HEIGHT)
+#     width = vid.get(cv2.CAP_PROP_FRAME_WIDTH)
 
-    #Getting data to be embedded
-    msg = input("Enter the message to be embedded: ")
-    msg_size= len(msg)
+#     print(
+#         f"Frame per sec: {video_fps}\n Total FRame: {total_frames}\n Height: {height} \nWidth: {width}")
 
-    """ NOTE: The data to be embedded can be of different types
-            1. text
-            2. image
-            3. video
-            4. audio"""
+#     # Getting data to be embedded
+#     msg = input("Enter the message to be embedded: ")
+#     msg_size = len(msg)
 
-    if(msg_size > width):
-        print("Get another video to embedd")
-        exit()
-    
-    #temporary
-    frame_list = [8,13,36,37,41,65,100,200,288]
-    """PCA analysis method"""
-    #robust_regions = PCA_Implementation(vid,msg_size,height,width,frame_list)
-    #print(robust_regions)
+#     """ NOTE: The data to be embedded can be of different types
+#             1. text
+#             2. image
+#             3. video
+#             4. audio"""
 
-    """Grey Wolf Optimisation"""
-    robust_regions = robust_region = GWO(vid,msg_size,height,width,frame_list)
-    print(robust_regions)
+#     if (msg_size > width):
+#         print("Get another video to embedd")
+#         exit()
+
+#     # temporary
+#     frame_list = [8, 13, 36, 37, 41, 65, 100, 200, 288]
+#     """PCA analysis method"""
+#     # robust_regions = PCA_Implementation(vid,msg_size,height,width,frame_list)
+#     # print(robust_regions)
+
+#     """Grey Wolf Optimisation"""
+#     robust_regions = robust_region = GWO(
+#         vid, msg_size, height, width, frame_list)
+#     print(robust_regions)
+
+#     """cv2.imshow('Y',y)
+#     cv2.waitKey(1000)
+#     cv2.imshow('U',u)
+#     cv2.waitKey(1000)
+#     cv2.imshow('V',v)
+#     cv2.waitKey(1000)"""
+
+#     # (max_row,max_row_end,max_col,max_col_end) = pca_analysis(y, msg_size,height,width)
+
+#     """Selected region printed"""
+#     # img = y[max_row:max_row_end,max_col:max_col_end]
+#     # cv2.imshow('Selected region',img)
+#     # cv2.waitKey(10000)
+
+#     vid.release()
+#     cv2.destroyAllWindows()
 
 
-    """cv2.imshow('Y',y)
-    cv2.waitKey(1000)
-    cv2.imshow('U',u)
-    cv2.waitKey(1000)
-    cv2.imshow('V',v)
-    cv2.waitKey(1000)"""
-
-    #(max_row,max_row_end,max_col,max_col_end) = pca_analysis(y, msg_size,height,width)
-    
-    """Selected region printed"""
-    #img = y[max_row:max_row_end,max_col:max_col_end]
-    #cv2.imshow('Selected region',img)
-    #cv2.waitKey(10000)
-    
-   
-
-
-
-    vid.release()
-    cv2.destroyAllWindows()
- 
-if __name__ == '__main__' :
-    main()
-    """NOTE : combine the frame selection an region selection principles to derive and equation, which will help in optimal selection of frames"""
+# if __name__ == '__main__':
+#     main()
+#     """NOTE : combine the frame selection an region selection principles to derive and equation, which will help in optimal selection of frames"""

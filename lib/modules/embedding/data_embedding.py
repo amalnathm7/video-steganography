@@ -1,7 +1,11 @@
-import cv2
-import math
+import sys
+sys.path.append("C:/Users/amaln/Desktop/Project/steganography/lib/modules/")
+import selection.region_selection as rs
+import selection.frame_selection as fs
+from encryption.textenc import encrypt_text
 import os
-from modules.encryption import textenc
+import math
+import cv2
 from PIL import Image
 
 
@@ -20,13 +24,16 @@ def option(opt):
 
 def text_to_binary(file_path):
     file = open(file_path, "r")
+
     data = file.read()
 
-    encrypted_data, iv, key = textenc.encrypt_text(data)
+    encrypted_data, iv, key = encrypt_text(data)
 
-    encrypted_data = key.hex() + "$" + iv.hex() + "$" + str(len(data)) + "$" + encrypted_data.hex()
+    data_hex = encrypted_data.hex()
 
-    binary_data = [format(ord(char), '08b') for char in encrypted_data]
+    data = key.hex() + "$" + iv.hex() + "$" + str(len(data_hex)) + "$" + data_hex
+
+    binary_data = [format(ord(char), '08b') for char in data]
 
     return binary_data
 
@@ -82,13 +89,41 @@ def video_to_binary(file_path):
 
 
 def lsb332_embedding(cap, writer, binary_data):
-    robust_regions = {}
+    pixel_count = len(binary_data)
 
-    for i in range(300):
-        robust_regions[i] = [{
-            'start': (0, 0),
-            'end': (287, 351),
-        }]
+    """TODO"""
+    print(pixel_count)
+
+    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    total_frames = cap.get(cv2.CAP_PROP_FRAME_COUNT)
+    
+    no_of_blocks = 1
+
+    no_of_frames = math.ceil(pixel_count / (min(width, height) * no_of_blocks))
+
+    while no_of_frames > total_frames:
+        no_of_blocks += 1
+        no_of_frames = math.ceil(pixel_count / (min(width, height) * no_of_blocks))
+
+    block_size = math.ceil(math.sqrt(min(width, height)))
+    
+    print(no_of_blocks)
+    print(no_of_frames)
+    print(block_size)
+
+    selected_frames = fs.histogram_difference(
+        cap=cap, frame_count=no_of_frames)
+    
+    cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
+
+    selected_regions = rs.PCA_Implementation(
+        cap=cap, block_size=block_size, frame_list=selected_frames, no_of_blocks=no_of_blocks)
+    
+    # robust_regions = rs.GWO(cap=cap, msg_size=math.ceil(math.sqrt(pixel_count)),
+    #                         frame_list=selected_frames, no_of_blocks=no_of_blocks)
+
+    cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
 
     frame_no = 0
     count = 0
@@ -105,12 +140,15 @@ def lsb332_embedding(cap, writer, binary_data):
 
         frame_no = frame_no + 1
 
-        if frame_no in robust_regions.keys():
-            for element in robust_regions[frame_no]:
-                region = frame[element['start'][0]:element['end']
-                               [0] + 1, element['start'][1]:element['end'][1] + 1]
-                region_height = element['end'][0] + 1 - element['start'][0]
-                region_width = element['end'][1] + 1 - element['start'][1]
+        if frame_no in selected_regions.keys():
+            for element in selected_regions[frame_no]:
+
+                """TODO"""
+
+                region = frame[element['start'][1]:element['end']
+                               [1] + 1, element['start'][0]:element['end'][0] + 1]
+                region_height = element['end'][1] + 1 - element['start'][1]
+                region_width = element['end'][0] + 1 - element['start'][0]
 
                 for i in range(0, region_height):
                     for j in range(0, region_width):

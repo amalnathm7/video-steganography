@@ -1,18 +1,13 @@
 from Cryptodome.Cipher import AES
-from Cryptodome.Util.Padding import pad, unpad
+from Cryptodome.Util.Padding import pad
 
-# Set the encryption key
 key = b'0123456789abcdef' * 2  # 256-bit key
 
-# Define the encryption function for text messages
 def encrypt_text(msg):
-    # Create an AES cipher object with CBC mode
     cipher = AES.new(key, AES.MODE_CBC)
     
-    # Encrypt the message with the cipher object
     ciphertext = cipher.encrypt(pad(msg.encode(), AES.block_size))
     
-    # Return the encrypted message and initialization vector (IV)
     return ciphertext, cipher.iv, key
 
 # # Define the decryption function for text messages

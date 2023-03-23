@@ -2,7 +2,11 @@ import cv2
 import math
 from PIL import Image
 import numpy as np
-import decryption.textdec as dec
+import sys
+sys.path.append("C:/Users/amaln/Desktop/Project/steganography/lib/modules/")
+from decryption.textdec import decrypt_text
+import selection.region_selection as rs
+import selection.frame_selection as fs
 
 
 def option(opt):
@@ -23,13 +27,36 @@ def binary_to_decimal(n):
 
 
 def lsb332_extraction(cap, type):
-    robust_regions = {}
 
-    for i in range(300):
-        robust_regions[i] = [{
-            'start': (0, 0),
-            'end': (287, 351),
-        }]
+    """TODO"""
+    pixel_count = 133
+
+    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    total_frames = cap.get(cv2.CAP_PROP_FRAME_COUNT)
+
+    no_of_blocks = 1
+
+    no_of_frames = math.ceil(pixel_count / (min(width, height) * no_of_blocks))
+
+    while no_of_frames > total_frames:
+        no_of_blocks += 1
+        no_of_frames = math.ceil(pixel_count / (min(width, height) * no_of_blocks))
+
+    block_size = math.ceil(math.sqrt(min(width, height)))
+
+    selected_frames = fs.histogram_difference(
+        cap=cap, frame_count=no_of_frames)
+
+    cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
+
+    selected_regions = rs.PCA_Implementation(
+        cap=cap, block_size=block_size, frame_list=selected_frames, no_of_blocks=no_of_blocks)
+    
+    # robust_regions = rs.GWO(cap=cap, msg_size=math.ceil(math.sqrt(pixel_count)),
+    #                         frame_list=selected_frames, no_of_blocks=no_of_blocks)
+
+    cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
 
     len = 0
     extracted_len = -1
@@ -44,9 +71,8 @@ def lsb332_extraction(cap, type):
     pixels = []
     index = 0
     rgb = ()
-    key = b""
-    iv = b""
-    encrypted_text = b""
+    key = None
+    iv = None
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
     video_writer = cv2.VideoWriter(
         'assets/extracted_files/videos/output.mp4', fourcc, fps, (width, height))
@@ -58,12 +84,15 @@ def lsb332_extraction(cap, type):
 
         frame_no = frame_no + 1
 
-        if frame_no in robust_regions.keys():
-            for element in robust_regions[frame_no]:
-                region = frame[element['start'][0]:element['end']
-                               [0] + 1, element['start'][1]:element['end'][1] + 1]
-                region_height = element['end'][0] + 1 - element['start'][0]
-                region_width = element['end'][1] + 1 - element['start'][1]
+        if frame_no in selected_regions.keys():
+            for element in selected_regions[frame_no]:
+
+                """TODO"""
+
+                region = frame[element['start'][1]:element['end']
+                               [1] + 1, element['start'][0]:element['end'][0] + 1]
+                region_height = element['end'][1] + 1 - element['start'][1]
+                region_width = element['end'][0] + 1 - element['start'][0]
 
                 for i in range(0, region_height):
                     for j in range(0, region_width):
@@ -80,11 +109,11 @@ def lsb332_extraction(cap, type):
 
                         if (type == 1):
                             if (extracted_len == -1 and ch == '$'):
-                                if (key == b""):
+                                if (key == None):
                                     key = bytes.fromhex(data)
                                     data = ""
-                                elif (iv == b""):
-                                    key = bytes.fromhex(data)
+                                elif (iv == None):
+                                    iv = bytes.fromhex(data)
                                     data = ""
                                 else:
                                     len = int(data)
@@ -95,7 +124,7 @@ def lsb332_extraction(cap, type):
                                     extracted_len += 1
                                 data += ch
                             else:
-                                decrypted_data = dec.decrypt_text(data, iv, key)
+                                decrypted_data = decrypt_text(bytes.fromhex(data), iv, key)
 
                                 file = open(
                                     "assets/extracted_files/texts/output.txt", "w")

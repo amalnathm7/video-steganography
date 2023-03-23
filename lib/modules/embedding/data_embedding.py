@@ -1,6 +1,7 @@
 import cv2
 import math
 import os
+from modules.encryption import textenc
 from PIL import Image
 
 
@@ -20,9 +21,12 @@ def option(opt):
 def text_to_binary(file_path):
     file = open(file_path, "r")
     data = file.read()
-    data = str(len(data)) + "$" + data
 
-    binary_data = [format(ord(char), '08b') for char in data]
+    encrypted_data, iv, key = textenc.encrypt_text(data)
+
+    encrypted_data = key.hex() + "$" + iv.hex() + "$" + str(len(data)) + "$" + encrypted_data.hex()
+
+    binary_data = [format(ord(char), '08b') for char in encrypted_data]
 
     return binary_data
 

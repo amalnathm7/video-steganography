@@ -2,6 +2,7 @@ import cv2
 import math
 from PIL import Image
 import numpy as np
+import decryption.textdec as dec
 
 
 def option(opt):
@@ -43,6 +44,9 @@ def lsb332_extraction(cap, type):
     pixels = []
     index = 0
     rgb = ()
+    key = b""
+    iv = b""
+    encrypted_text = b""
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
     video_writer = cv2.VideoWriter(
         'assets/extracted_files/videos/output.mp4', fourcc, fps, (width, height))
@@ -76,19 +80,30 @@ def lsb332_extraction(cap, type):
 
                         if (type == 1):
                             if (extracted_len == -1 and ch == '$'):
-                                len = int(data)
-                                data = ""
-                                extracted_len = 0
+                                if (key == b""):
+                                    key = bytes.fromhex(data)
+                                    data = ""
+                                elif (iv == b""):
+                                    key = bytes.fromhex(data)
+                                    data = ""
+                                else:
+                                    len = int(data)
+                                    data = ""
+                                    extracted_len = 0
                             elif extracted_len < len:
                                 if (extracted_len != -1):
                                     extracted_len += 1
                                 data += ch
                             else:
+                                decrypted_data = dec.decrypt_text(data, iv, key)
+
                                 file = open(
                                     "assets/extracted_files/texts/output.txt", "w")
+                                
+                                file.write(decrypted_data)
+
                                 print(
                                     "Output file at assets/extracted_files/texts/output.txt successfully created")
-                                file.write(data)
                                 flag = True
                                 break
                         elif (type == 2):

@@ -5,7 +5,7 @@ from PIL import Image
 import os
 
 # Set the encryption key
-key = os.urandom(16)
+key = b'0123456789abcdef' * 2  # 256-bit key
 
 image = Image.open('assets/secret_files/images/test.jpg')
 width, height = image.size
@@ -50,18 +50,6 @@ def encrypt_data(data):
 
     return ciphertext
 
-def decrypt_data(ciphertext):
-    # Create a new AES cipher object with the key and mode
-    cipher = AES.new(key, AES.MODE_CBC, iv=iv)
-
-    # Decrypt the ciphertext with the cipher
-    padded_data = cipher.decrypt(ciphertext)
-
-    # Unpad the data and return the plaintext
-    data = unpad(padded_data, BLOCK_SIZE)
-
-    return data
-
 def encrypt_file(filename):
     # Open the input file and read its contents
     try:
@@ -82,117 +70,24 @@ def encrypt_file(filename):
     
     return width, height
 
-# Define the decryption function for files (documents, images, videos)
-def decrypt_file(filename, width, height):
-    # Open the input file and read its contents
-    try:
-        with open(filename, 'rb') as f:
-            ciphertext = f.read()
-    except Exception as e:
-        print("Error opening file:", e)
-        return
-    
-    # Decrypt the data with AES and create a PIL image
-    plaintext = decrypt_data(ciphertext)
-    try:
-        img = Image.frombytes("RGB", (width, height), plaintext)
-        output_filename = filename.rsplit('.', 1)[0] + '.jpg'
-        img.save(output_filename)
-    except Exception as e:
-        print("Error creating PIL image:", e)
-        return
-    
-    print("Decryption successful! Decrypted file:", output_filename)
-
 # Encrypt a text message
-ciphertext, iv = encrypt_text("Hello, world!")
-print(ciphertext, iv)
+ciphertext, iv = encrypt_text("Hello world!")
+# print(ciphertext, iv)
 
 # Decrypt the ciphertext
 plaintext = decrypt_text(ciphertext, iv)
 print(plaintext)
 
 
-
-
 # Encrypt a file
 encrypt_file("assets/secret_files/images/test.jpg")
 
 # Decrypt the file
-decrypt_file("assets/secret_files/images/test.jpg.enc",width,height)
+# decrypt_file("assets/secret_files/images/test.jpg.enc",width,height)
 
-# assets/cover_videos/video.mp4
-# assets/cover_videos/video.mp4.enc
+# # assets/cover_videos/video.mp4
+# # assets/cover_videos/video.mp4.enc
 
-# assets/secret_files/images/input.jpg
-# assets/secret_files/images/input.jpg.enc
+# # assets/secret_files/images/input.jpg
+# # assets/secret_files/images/input.jpg.enc
 
-   
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# from Cryptodome.Cipher import AES
-# from Cryptodome.Util.Padding import pad
-
-# # Encryption function
-# def encrypt(plain_text, key):
-#     # Convert the key and plaintext to bytes
-#     key = key.encode('utf-8')
-#     plain_text = plain_text.encode('utf-8')
-    
-#     # Create a cipher object and encrypt the plaintext
-#     cipher = AES.new(key, AES.MODE_CBC)
-#     cipher_text = cipher.encrypt(pad(plain_text, AES.block_size))
-    
-#     # Return the initialization vector (IV) and the ciphertext
-#     return cipher.iv + cipher_text
-
-# # Example usage
-# key = 'mysecretpassword'
-# plain_text = 'This is a secret message'
-# encrypted_data = encrypt(plain_text, key)
-
-# # Print the encrypted data
-# print(encrypted_data)

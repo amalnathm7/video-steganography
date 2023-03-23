@@ -264,11 +264,13 @@ def lsb332_extraction(cap, type):
     width = -1
     total_frames = -1
     fps = -1
-    frame_index = 1
+    frame_index = 0
     pixels = []
     index = 0
     rgb = ()
-    img_array = []
+    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+    video_writer = cv2.VideoWriter(
+        'assets/extracted_files/videos/output.mp4', fourcc, fps, (width, height))
 
     while True:
         ret, frame = cap.read()
@@ -321,7 +323,6 @@ def lsb332_extraction(cap, type):
                                     data = ""
                                 elif (height == -1):
                                     height = int(data)
-                                    data = ""
                                     len = height * width * 3
                                     extracted_len = 0
                             elif extracted_len < len:
@@ -361,7 +362,6 @@ def lsb332_extraction(cap, type):
                                     data = ""
                                 elif (total_frames == -1):
                                     total_frames = int(data)
-                                    data = ""
                                     len = height * width * 3
                                     extracted_len = 0
                             elif extracted_len < len:
@@ -381,25 +381,21 @@ def lsb332_extraction(cap, type):
                             else:
                                 img = Image.new(
                                     'RGB', (width, height), color=0)
+
                                 img.putdata(pixels)
-                                
-                                img_array.append(np.array(img))
-                                
+
+                                video_writer.write(np.array(img))
+
+                                print(frame_index)
                                 frame_index += 1
-                                
-                                if(frame_index == total_frames):
-                                    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-                                    video_writer = cv2.VideoWriter('assets/extracted_files/videos/output.mp4', fourcc, fps, (width, height))
 
-                                    for array in img_array:
-                                        video_writer.write(array)
-
+                                if (frame_index == total_frames):
                                     print(
                                         "Output file at assets/extracted_files/videos/output.mp4 successfully created")
-                                    
                                     flag = True
                                     break
                                 else:
+                                    extracted_len = 0
                                     pixels.clear()
                     if (flag):
                         break
@@ -410,6 +406,7 @@ def lsb332_extraction(cap, type):
             if (flag):
                 break
 
+    video_writer.release()
     cap.release()
     cv2.destroyAllWindows()
 

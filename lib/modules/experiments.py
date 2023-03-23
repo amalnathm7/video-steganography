@@ -29,7 +29,7 @@ def main():
         ret, frame = cap.read()
         ret1, frame1 = cap1.read()
 
-        if not ret:
+        if not ret or not ret1:
             break
 
         print("PSNR: " + str(psnr(frame, frame1)))

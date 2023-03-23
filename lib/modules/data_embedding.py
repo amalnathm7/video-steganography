@@ -78,238 +78,13 @@ def video_to_binary(file_path):
 
 
 def lsb332_embedding(cap, writer, binary_data):
-    robust_regions = {
-        1: [
-            {
-                'start': (0, 0),
-                'end': (287, 351),
-            },
-        ],
+    robust_regions = {}
 
-        2: [
-            {
-                'start': (0, 0),
-                'end': (287, 351),
-            },
-        ],
-
-        3: [
-            {
-                'start': (0, 0),
-                'end': (287, 351),
-            },
-        ],
-
-        4: [
-            {
-                'start': (0, 0),
-                'end': (287, 351),
-            },
-        ],
-
-        5: [
-            {
-                'start': (0, 0),
-                'end': (287, 351),
-            },
-        ],
-
-        6: [
-            {
-                'start': (0, 0),
-                'end': (287, 351),
-            },
-        ],
-
-        7: [
-            {
-                'start': (0, 0),
-                'end': (287, 351),
-            },
-        ],
-
-        8: [
-            {
-                'start': (0, 0),
-                'end': (287, 351),
-            },
-        ],
-
-        9: [
-            {
-                'start': (0, 0),
-                'end': (287, 351),
-            },
-        ],
-
-        10: [
-            {
-                'start': (0, 0),
-                'end': (287, 351),
-            },
-        ],
-
-        11: [
-            {
-                'start': (0, 0),
-                'end': (287, 351),
-            },
-        ],
-
-        12: [
-            {
-                'start': (0, 0),
-                'end': (287, 351),
-            },
-        ],
-
-        13: [
-            {
-                'start': (0, 0),
-                'end': (287, 351),
-            },
-        ],
-
-        14: [
-            {
-                'start': (0, 0),
-                'end': (287, 351),
-            },
-        ],
-
-        15: [
-            {
-                'start': (0, 0),
-                'end': (287, 351),
-            },
-        ],
-
-        16: [
-            {
-                'start': (0, 0),
-                'end': (287, 351),
-            },
-        ],
-
-        17: [
-            {
-                'start': (0, 0),
-                'end': (287, 351),
-            },
-        ],
-
-        18: [
-            {
-                'start': (0, 0),
-                'end': (287, 351),
-            },
-        ],
-
-        19: [
-            {
-                'start': (0, 0),
-                'end': (287, 351),
-            },
-        ],
-
-        20: [
-            {
-                'start': (0, 0),
-                'end': (287, 351),
-            },
-        ],
-
-        21: [
-            {
-                'start': (0, 0),
-                'end': (287, 351),
-            },
-        ],
-
-        22: [
-            {
-                'start': (0, 0),
-                'end': (287, 351),
-            },
-        ],
-
-        23: [
-            {
-                'start': (0, 0),
-                'end': (287, 351),
-            },
-        ],
-
-        24: [
-            {
-                'start': (0, 0),
-                'end': (287, 351),
-            },
-        ],
-
-        25: [
-            {
-                'start': (0, 0),
-                'end': (287, 351),
-            },
-        ],
-
-        26: [
-            {
-                'start': (0, 0),
-                'end': (287, 351),
-            },
-        ],
-
-        27: [
-            {
-                'start': (0, 0),
-                'end': (287, 351),
-            },
-        ],
-
-        28: [
-            {
-                'start': (0, 0),
-                'end': (287, 351),
-            },
-        ],
-
-        29: [
-            {
-                'start': (0, 0),
-                'end': (287, 351),
-            },
-        ],
-
-        30: [
-            {
-                'start': (0, 0),
-                'end': (287, 351),
-            },
-        ],
-
-        31: [
-            {
-                'start': (0, 0),
-                'end': (287, 351),
-            },
-        ],
-
-        32: [
-            {
-                'start': (0, 0),
-                'end': (287, 351),
-            },
-        ],
-
-        33: [
-            {
-                'start': (0, 0),
-                'end': (287, 351),
-            },
-        ],
-    }
+    for i in range(300):
+        robust_regions[i] = [{
+            'start': (0, 0),
+            'end': (287, 351),
+        }]
 
     frame_no = 0
     count = 0
@@ -361,7 +136,7 @@ def lsb332_embedding(cap, writer, binary_data):
         print("\nData is large!")
     else:
         print("\nEmbedded successfully")
-    
+
     writer.release()
     cap.release()
 
@@ -411,7 +186,7 @@ def main():
                              binary_data=image_to_binary('assets/secret_files/images/input.jpg'))
         elif (file_type == 3):
             lsb332_embedding(cap=cap, writer=writer, binary_data=video_to_binary(
-                'assets/secret_files/videos/input.y4m'))
+                'assets/secret_files/videos/input1.mp4'))
         else:
             print("Invalid option!")
             flag = True

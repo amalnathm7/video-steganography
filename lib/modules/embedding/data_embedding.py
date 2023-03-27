@@ -3,6 +3,7 @@ sys.path.append("C:/Users/amaln/Desktop/Project/steganography/lib/modules/")
 import selection.region_selection as rs
 import selection.frame_selection as fs
 from encryption.textenc import encrypt_text
+from encryption.imgenc import encrypt_img
 import os
 import math
 import cv2
@@ -39,6 +40,9 @@ def text_to_binary(file_path):
 
 
 def image_to_binary(file_path):
+    encrypt_img(filename=file_path)
+
+    
     img = Image.open(file_path)
 
     rgb_im = img.convert('RGB')
@@ -107,10 +111,6 @@ def lsb332_embedding(cap, writer, binary_data):
         no_of_frames = math.ceil(pixel_count / (min(width, height) * no_of_blocks))
 
     block_size = math.ceil(math.sqrt(min(width, height)))
-    
-    print(no_of_blocks)
-    print(no_of_frames)
-    print(block_size)
 
     selected_frames = fs.histogram_difference(
         cap=cap, frame_count=no_of_frames)

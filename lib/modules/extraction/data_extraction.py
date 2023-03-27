@@ -1,3 +1,4 @@
+import io
 import cv2
 import math
 from PIL import Image
@@ -5,6 +6,7 @@ import numpy as np
 import sys
 sys.path.append("C:/Users/amaln/Desktop/Project/steganography/lib/modules/")
 from decryption.textdec import decrypt_text
+from decryption.imgdec import decrypt_image_data
 import selection.region_selection as rs
 import selection.frame_selection as fs
 
@@ -29,7 +31,7 @@ def binary_to_decimal(n):
 def lsb332_extraction(cap, type):
 
     """TODO"""
-    pixel_count = 133
+    pixel_count = 40136
 
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
@@ -49,7 +51,12 @@ def lsb332_extraction(cap, type):
         cap=cap, frame_count=no_of_frames)
 
     cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
+    
+    # selected_regions = {}
 
+    # for i in range(300):
+    #     selected_regions[i] = [{'start': (0, 0), 'end': (200, 200)}]
+    
     selected_regions = rs.PCA_Implementation(
         cap=cap, block_size=block_size, frame_list=selected_frames, no_of_blocks=no_of_blocks)
     
@@ -67,10 +74,6 @@ def lsb332_extraction(cap, type):
     width = -1
     total_frames = -1
     fps = -1
-    frame_index = 0
-    pixels = []
-    index = 0
-    rgb = ()
     key = None
     iv = None
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
@@ -107,115 +110,47 @@ def lsb332_extraction(cap, type):
                                                 decimal_to_binary(b, 3) + decimal_to_binary(c, 2))
                         ch = chr(num)
 
-                        if (type == 1):
-                            if (extracted_len == -1 and ch == '$'):
-                                if (key == None):
-                                    key = bytes.fromhex(data)
-                                    data = ""
-                                elif (iv == None):
-                                    iv = bytes.fromhex(data)
-                                    data = ""
-                                else:
-                                    len = int(data)
-                                    data = ""
-                                    extracted_len = 0
-                            elif extracted_len < len:
-                                if (extracted_len != -1):
-                                    extracted_len += 1
-                                data += ch
+                        if (extracted_len == -1 and ch == '$'):
+                            if (key == None):
+                                key = bytes.fromhex(data)
+                                data = ""
+                            elif (iv == None):
+                                iv = bytes.fromhex(data)
+                                data = ""
                             else:
-                                decrypted_data = decrypt_text(bytes.fromhex(data), iv, key)
+                                len = int(data)
+                                data = ""
+                                extracted_len = 0
+                        elif extracted_len < len:
+                            if (extracted_len != -1):
+                                extracted_len += 1
+                            data += ch
+                        else:
+                            if (type == 1):
+                                text_bytes = decrypt_text(bytes.fromhex(data), iv, key)
 
                                 file = open(
                                     "assets/extracted_files/texts/output.txt", "w")
                                 
-                                file.write(decrypted_data)
+                                file.write(text_bytes)
 
                                 print(
                                     "Output file at assets/extracted_files/texts/output.txt successfully created")
                                 flag = True
                                 break
-                        elif (type == 2):
-                            if (extracted_len == -1 and ch == '$'):
-                                if (width == -1):
-                                    width = int(data)
-                                    data = ""
-                                elif (height == -1):
-                                    height = int(data)
-                                    len = height * width * 3
-                                    extracted_len = 0
-                            elif extracted_len < len:
-                                if (extracted_len == -1):
-                                    data += ch
-                                else:
-                                    index = (index + 1) % 3
+                            elif (type == 2):
+                                image_bytes = decrypt_image_data(ciphertext=bytes.fromhex(data), key=key, iv=iv)
 
-                                    if (index == 0):
-                                        rgb += (num,)
-                                        pixels.append(rgb)
-                                        rgb = ()
-                                    else:
-                                        rgb += (num,)
+                                image = Image.open(io.BytesIO(image_bytes))
+                                
+                                image.save('assets/extracted_files/images/output.jpg')
 
-                                    extracted_len += 1
-                            else:
-                                img = Image.new(
-                                    'RGB', (width, height), color=0)
-                                img.putdata(pixels)
-                                img.save(
-                                    'assets/extracted_files/images/output.jpg')
                                 print(
                                     "Output file at assets/extracted_files/images/output.jpg successfully created")
                                 flag = True
                                 break
-                        elif (type == 3):
-                            if (extracted_len == -1 and ch == '$'):
-                                if (width == -1):
-                                    width = int(data)
-                                    data = ""
-                                elif (height == -1):
-                                    height = int(data)
-                                    data = ""
-                                elif (fps == -1):
-                                    fps = int(data)
-                                    data = ""
-                                elif (total_frames == -1):
-                                    total_frames = int(data)
-                                    len = height * width * 3
-                                    extracted_len = 0
-                            elif extracted_len < len:
-                                if (extracted_len == -1):
-                                    data += ch
-                                else:
-                                    index = (index + 1) % 3
-
-                                    if (index == 0):
-                                        rgb += (num,)
-                                        pixels.append(rgb)
-                                        rgb = ()
-                                    else:
-                                        rgb += (num,)
-
-                                    extracted_len += 1
-                            else:
-                                img = Image.new(
-                                    'RGB', (width, height), color=0)
-
-                                img.putdata(pixels)
-
-                                video_writer.write(np.array(img))
-
-                                print(frame_index)
-                                frame_index += 1
-
-                                if (frame_index == total_frames):
-                                    print(
-                                        "Output file at assets/extracted_files/videos/output.mp4 successfully created")
-                                    flag = True
-                                    break
-                                else:
-                                    extracted_len = 0
-                                    pixels.clear()
+                            elif (type == 3):
+                                pass
                     if (flag):
                         break
 

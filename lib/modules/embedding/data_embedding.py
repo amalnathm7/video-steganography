@@ -1,9 +1,10 @@
+import io
 import sys
 sys.path.append("C:/Users/amaln/Desktop/Project/steganography/lib/modules/")
 import selection.region_selection as rs
 import selection.frame_selection as fs
 from encryption.textenc import encrypt_text
-from encryption.imgenc import encrypt_img
+from encryption.imgenc import encrypt_image_data
 import os
 import math
 import cv2
@@ -40,26 +41,18 @@ def text_to_binary(file_path):
 
 
 def image_to_binary(file_path):
-    encypted_img_path = encrypt_img(filename=file_path)
+    img = Image.open(file_path)
+    bytes_io = io.BytesIO()
+    img.save(bytes_io, format=img.format.lower())
+    bytes_data = bytes_io.getvalue()
 
-    print(encypted_img_path)
+    encrypted_data, key, iv = encrypt_image_data(bytes_data)
 
-    img = Image.open(encypted_img_path)
+    data_hex = encrypted_data.hex()
 
-    rgb_im = img.convert('RGB')
+    data = key.hex() + "$" + iv.hex() + "$" + str(len(data_hex)) + "$" + data_hex
 
-    width, height = img.size
-
-    data = "{}${}$".format(width, height)
     binary_data = [format(ord(char), '08b') for char in data]
-
-    for x in range(height):
-        for y in range(width):
-            r, g, b = rgb_im.getpixel((y, x))
-
-            binary_data.append(int_to_binary(r))
-            binary_data.append(int_to_binary(g))
-            binary_data.append(int_to_binary(b))
 
     return binary_data
 
@@ -117,6 +110,11 @@ def lsb332_embedding(cap, writer, binary_data):
         cap=cap, frame_count=no_of_frames)
     
     cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
+
+    # selected_regions = {}
+
+    # for i in range(300):
+    #     selected_regions[i] = [{'start': (0, 0), 'end': (200, 200)}]
 
     selected_regions = rs.PCA_Implementation(
         cap=cap, block_size=block_size, frame_list=selected_frames, no_of_blocks=no_of_blocks)

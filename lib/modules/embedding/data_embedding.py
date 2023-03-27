@@ -40,10 +40,11 @@ def text_to_binary(file_path):
 
 
 def image_to_binary(file_path):
-    encrypt_img(filename=file_path)
+    encypted_img_path = encrypt_img(filename=file_path)
 
-    
-    img = Image.open(file_path)
+    print(encypted_img_path)
+
+    img = Image.open(encypted_img_path)
 
     rgb_im = img.convert('RGB')
 
@@ -222,10 +223,10 @@ def main():
 
         if (file_type == 1):
             lsb332_embedding(cap=cap, writer=writer,
-                             binary_data=text_to_binary("assets/secret_files/texts/input.txt"))
+                             binary_data=text_to_binary("assets/secret_files/texts/input1.txt"))
         elif (file_type == 2):
             lsb332_embedding(cap=cap, writer=writer,
-                             binary_data=image_to_binary('assets/secret_files/images/input.jpg'))
+                             binary_data=image_to_binary('assets/secret_files/images/input1.jpg'))
         elif (file_type == 3):
             lsb332_embedding(cap=cap, writer=writer, binary_data=video_to_binary(
                 'assets/secret_files/videos/input1.mp4'))

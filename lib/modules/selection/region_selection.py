@@ -403,14 +403,14 @@ def PCA_Implementation(cap, block_size, frame_list, no_of_blocks):
         ret, frame = cap.read()
         if not ret:
             break
-        frame_no += 1
         if frame_no not in frame_list:
+            frame_no += 1
             continue
 
         # Extracting yuv components from the image
         yuv_img = cv2.cvtColor(frame, cv2.COLOR_BGR2YUV)
-        cv2.imshow('YUV', yuv_img)
-        cv2.waitKey(1000)
+        # cv2.imshow('YUV', yuv_img)
+        # cv2.waitKey(1000)
 
         y, u, v = cv2.split(yuv_img)
 
@@ -420,6 +420,7 @@ def PCA_Implementation(cap, block_size, frame_list, no_of_blocks):
         l = Get_Regions(block, block_size)
         robust_regions[frame_no] = l
         # print(robust_regions)
+        frame_no += 1
     return robust_regions
 
 

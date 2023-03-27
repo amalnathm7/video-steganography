@@ -108,7 +108,7 @@ def lsb332_embedding(cap, writer, binary_data):
 
     selected_frames = fs.histogram_difference(
         cap=cap, frame_count=no_of_frames)
-    
+
     cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
 
     # selected_regions = {}
@@ -119,7 +119,7 @@ def lsb332_embedding(cap, writer, binary_data):
     selected_regions = rs.PCA_Implementation(
         cap=cap, block_size=block_size, frame_list=selected_frames, no_of_blocks=no_of_blocks)
     
-    # robust_regions = rs.GWO(cap=cap, msg_size=math.ceil(math.sqrt(pixel_count)),
+    # selected_regions = rs.GWO(cap=cap, msg_size=math.ceil(math.sqrt(pixel_count)),
     #                         frame_list=selected_frames, no_of_blocks=no_of_blocks)
 
     cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
@@ -144,10 +144,10 @@ def lsb332_embedding(cap, writer, binary_data):
 
                 """TODO"""
 
-                region = frame[element['start'][1]:element['end']
-                               [1] + 1, element['start'][0]:element['end'][0] + 1]
-                region_height = element['end'][1] + 1 - element['start'][1]
-                region_width = element['end'][0] + 1 - element['start'][0]
+                region = frame[element['start'][0]:element['end']
+                               [0] + 1, element['start'][1]:element['end'][1] + 1]
+                region_height = element['end'][0] + 1 - element['start'][0]
+                region_width = element['end'][1] + 1 - element['start'][1]
 
                 for i in range(0, region_height):
                     for j in range(0, region_width):
@@ -221,7 +221,7 @@ def main():
 
         if (file_type == 1):
             lsb332_embedding(cap=cap, writer=writer,
-                             binary_data=text_to_binary("assets/secret_files/texts/input1.txt"))
+                             binary_data=text_to_binary("assets/secret_files/texts/input5.txt"))
         elif (file_type == 2):
             lsb332_embedding(cap=cap, writer=writer,
                              binary_data=image_to_binary('assets/secret_files/images/input1.jpg'))

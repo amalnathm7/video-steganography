@@ -31,7 +31,7 @@ def binary_to_decimal(n):
 def lsb332_extraction(cap, type):
 
     """TODO"""
-    pixel_count = 40136
+    pixel_count = 133
 
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
@@ -60,12 +60,12 @@ def lsb332_extraction(cap, type):
     selected_regions = rs.PCA_Implementation(
         cap=cap, block_size=block_size, frame_list=selected_frames, no_of_blocks=no_of_blocks)
     
-    # robust_regions = rs.GWO(cap=cap, msg_size=math.ceil(math.sqrt(pixel_count)),
+    # selected_regions = rs.GWO(cap=cap, msg_size=math.ceil(math.sqrt(pixel_count)),
     #                         frame_list=selected_frames, no_of_blocks=no_of_blocks)
 
     cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
 
-    len = 0
+    total_len = 0
     extracted_len = -1
     frame_no = 0
     data = ""
@@ -92,10 +92,10 @@ def lsb332_extraction(cap, type):
 
                 """TODO"""
 
-                region = frame[element['start'][1]:element['end']
-                               [1] + 1, element['start'][0]:element['end'][0] + 1]
-                region_height = element['end'][1] + 1 - element['start'][1]
-                region_width = element['end'][0] + 1 - element['start'][0]
+                region = frame[element['start'][0]:element['end']
+                               [0] + 1, element['start'][1]:element['end'][1] + 1]
+                region_height = element['end'][0] + 1 - element['start'][0]
+                region_width = element['end'][1] + 1 - element['start'][1]
 
                 for i in range(0, region_height):
                     for j in range(0, region_width):
@@ -118,10 +118,10 @@ def lsb332_extraction(cap, type):
                                 iv = bytes.fromhex(data)
                                 data = ""
                             else:
-                                len = int(data)
+                                total_len = int(data)
                                 data = ""
                                 extracted_len = 0
-                        elif extracted_len < len:
+                        elif extracted_len < total_len:
                             if (extracted_len != -1):
                                 extracted_len += 1
                             data += ch

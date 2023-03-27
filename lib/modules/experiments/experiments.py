@@ -13,6 +13,10 @@ def option(opt):
 
 def main():
     flag = True
+    total_psnr = 0
+    total_ssim = 0
+    count = 0
+    count1 = 0
     while flag:
         print("1. akiyo\n2. bowing\n3. bus\n4. city\n5. crew\n")
         opt = int(input("Select video: "))
@@ -32,9 +36,16 @@ def main():
         if not ret or not ret1:
             break
 
-        print("PSNR: " + str(psnr(frame, frame1)))
+        if psnr(frame, frame1) != float("inf"):
+            total_psnr += psnr(frame, frame1)
+            count+=1
 
-        print("SSIM: " + str(ssim(frame, frame1)[0]))
+        if ssim(frame, frame1)[0] != 1:
+            total_ssim += ssim(frame, frame1)[0]
+            count1+=1
+
+    print("Average PSNR: " + str(total_psnr/count))
+    print("Average SSIM: " + str(total_ssim/count1))
 
     cap.release()
     cap1.release()

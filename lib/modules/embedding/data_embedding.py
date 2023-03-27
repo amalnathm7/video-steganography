@@ -1,6 +1,6 @@
 import io
 import sys
-sys.path.append("C:/Users/amaln/Desktop/Project/steganography/lib/modules/")
+sys.path.append("C:/Users/Meenakshi/Projects/video_steganography/lib/modules/")
 import selection.region_selection as rs
 import selection.frame_selection as fs
 from encryption.textenc import encrypt_text
@@ -224,7 +224,7 @@ def main():
                              binary_data=text_to_binary("assets/secret_files/texts/input1.txt"))
         elif (file_type == 2):
             lsb332_embedding(cap=cap, writer=writer,
-                             binary_data=image_to_binary('assets/secret_files/images/input1.jpg'))
+                             binary_data=image_to_binary('assets/secret_files/images/input8.jpg'))
         elif (file_type == 3):
             lsb332_embedding(cap=cap, writer=writer, binary_data=video_to_binary(
                 'assets/secret_files/videos/input1.mp4'))

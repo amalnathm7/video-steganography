@@ -1,15 +1,15 @@
+from PIL import Image
+import math
+import cv2
+import io
 import os
 import sys
 project_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, project_dir)
-import selection.frame_selection as fs
-import selection.region_selection as rs
-from decryption.imgdec import decrypt_image_data
 from decryption.textdec import decrypt_text
-import io
-import cv2
-import math
-from PIL import Image
+from decryption.imgdec import decrypt_image_data
+import selection.region_selection as rs
+import selection.frame_selection as fs
 
 
 def option(opt):
@@ -29,13 +29,49 @@ def binary_to_decimal(n):
     return int(n, 2)
 
 
-def lsb332_extraction(cap, type):
-    """TODO"""
-    pixel_count = 31848
+def adaptive_inverted_lsb332_extraction(region, i, j):
+    a = region[i, j, 0] - (math.floor(region[i, j, 0] / 8) * 8)
+    b = region[i, j, 1] - (math.floor(region[i, j, 1] / 8) * 8)
+    c = region[i, j, 2] - (math.floor(region[i, j, 2] / 4) * 4)
 
+    binary = decimal_to_binary(a, 3) + decimal_to_binary(b, 3) + decimal_to_binary(c, 2)
+    num = binary_to_decimal(binary)
+
+    if (num >= 128):
+        num = ~int(binary, 2) & 0b11111111
+
+    return num
+
+
+def extract_data(cap, type):
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     total_frames = cap.get(cv2.CAP_PROP_FRAME_COUNT)
+    data = ""
+    flag = False
+
+    ret, frame = cap.read()
+    if not ret:
+        print("No frames in stego video!")
+        return
+
+    region = frame[0:height, 0:width]
+
+    for i in range(0, height):
+        for j in range(0, width):
+            num = adaptive_inverted_lsb332_extraction(region=region, i=i, j=j)
+
+            if (num == 10):
+                pixel_count = int(data)
+                flag = True
+                break
+            else:
+                data += str(num)
+
+        if (flag):
+            break
+
+    cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
 
     no_of_blocks = 1
 
@@ -50,12 +86,15 @@ def lsb332_extraction(cap, type):
 
     selected_frames = fs.histogram_difference(
         cap=cap, frame_count=no_of_frames)
+    
+    selected_frames.sort()
+    print(selected_frames)
 
     cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
 
     # selected_regions = {}
 
-    # for i in range(300):
+    # for i in range(1, 300):
     #     selected_regions[i] = [{'start': (0, 0), 'end': (200, 200)}]
 
     selected_regions = rs.PCA_Implementation(
@@ -66,20 +105,16 @@ def lsb332_extraction(cap, type):
 
     cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
 
-    total_len = 0
-    extracted_len = -1
-    frame_no = 0
     data = ""
     flag = False
+    total_len = 0
+    extracted_len = -1
+    frame_no = -1
     height = -1
     width = -1
     total_frames = -1
-    fps = -1
     key = None
     iv = None
-    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-    video_writer = cv2.VideoWriter(
-        'assets/extracted_files/videos/output.mp4', fourcc, fps, (width, height))
 
     while True:
         ret, frame = cap.read()
@@ -90,9 +125,6 @@ def lsb332_extraction(cap, type):
 
         if frame_no in selected_regions.keys():
             for element in selected_regions[frame_no]:
-
-                """TODO"""
-
                 region = frame[element['start'][0]:element['end']
                                [0] + 1, element['start'][1]:element['end'][1] + 1]
                 region_height = element['end'][0] + 1 - element['start'][0]
@@ -100,21 +132,8 @@ def lsb332_extraction(cap, type):
 
                 for i in range(0, region_height):
                     for j in range(0, region_width):
-                        a = region[i, j, 0] - \
-                            (math.floor(region[i, j, 0] / 8) * 8)
-                        b = region[i, j, 1] - \
-                            (math.floor(region[i, j, 1] / 8) * 8)
-                        c = region[i, j, 2] - \
-                            (math.floor(region[i, j, 2] / 4) * 4)
-
-                        binary = decimal_to_binary(
-                            a, 3) + decimal_to_binary(b, 3) + decimal_to_binary(c, 2)
-                        num = binary_to_decimal(binary)
-
-                        if(num >= 128):
-                            num = ~int(binary, 2) & 0b11111111
-
-                        ch = chr(num)
+                        ch = chr(adaptive_inverted_lsb332_extraction(
+                            region=region, i=i, j=j))
 
                         if (extracted_len == -1 and ch == '$'):
                             if (key == None):
@@ -169,7 +188,6 @@ def lsb332_extraction(cap, type):
             if (flag):
                 break
 
-    video_writer.release()
     cap.release()
     cv2.destroyAllWindows()
 
@@ -195,7 +213,7 @@ def main():
         flag = False
 
         if file_type in [1, 2, 3]:
-            lsb332_extraction(cap=cap, type=file_type)
+            extract_data(cap=cap, type=file_type)
         else:
             print("Invalid option!")
             flag = True

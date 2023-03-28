@@ -46,8 +46,11 @@ def text_to_binary(file_path):
 
 def image_to_binary(file_path):
     img = Image.open(file_path)
+
     bytes_io = io.BytesIO()
+
     img.save(bytes_io, format=img.format.lower())
+
     bytes_data = bytes_io.getvalue()
 
     encrypted_data, key, iv = encrypt_image_data(bytes_data)
@@ -62,43 +65,93 @@ def image_to_binary(file_path):
 
 
 def video_to_binary(file_path):
-    cap = cv2.VideoCapture(file_path)
+    pass
+    # cap = cv2.VideoCapture(file_path)
 
-    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-    video_fps = int(cap.get(cv2.CAP_PROP_FPS))
-    total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+    # height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    # width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    # video_fps = int(cap.get(cv2.CAP_PROP_FPS))
+    # total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
 
-    data = "{}${}${}${}$".format(width, height, video_fps, total_frames)
-    binary_data = [format(ord(char), '08b') for char in data]
+    # data = "{}${}${}${}$".format(width, height, video_fps, total_frames)
+    # binary_data = [format(ord(char), '08b') for char in data]
 
-    while True:
-        ret, frame = cap.read()
-        if not ret:
-            break
+    # while True:
+    #     ret, frame = cap.read()
+    #     if not ret:
+    #         break
 
-        rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+    #     rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
-        for x in range(height):
-            for y in range(width):
-                r, g, b = rgb_frame[x][y]
+    #     for x in range(height):
+    #         for y in range(width):
+    #             r, g, b = rgb_frame[x][y]
 
-                binary_data.append(int_to_binary(r))
-                binary_data.append(int_to_binary(g))
-                binary_data.append(int_to_binary(b))
+    #             binary_data.append(int_to_binary(r))
+    #             binary_data.append(int_to_binary(g))
+    #             binary_data.append(int_to_binary(b))
 
-    return binary_data
+    # return binary_data
 
 
-def lsb332_embedding(cap, writer, binary_data):
-    pixel_count = len(binary_data)
+def adaptive_inverted_lsb332_embedding(binary, region, i, j):
+    r_binary = int_to_binary(region[i, j, 0])
+    g_binary = int_to_binary(region[i, j, 1])
+    b_binary = int_to_binary(region[i, j, 2])
 
-    """TODO"""
-    print(pixel_count)
+    r_penalty = (int(binary[0]) * 4) ^ int(r_binary[5]) + (
+        int(binary[1]) * 2) ^ int(r_binary[6]) + (int(binary[2])) ^ int(r_binary[7])
+    g_penalty = (int(binary[3]) * 4) ^ int(g_binary[5]) + (
+        int(binary[4]) * 2) ^ int(g_binary[6]) + (int(binary[5])) ^ int(g_binary[7])
+    b_penalty = (
+        int(binary[6]) * 4) ^ int(b_binary[5]) + (int(binary[7]) * 2) ^ int(b_binary[6])
 
+    penalty = r_penalty + g_penalty + b_penalty
+    
+    if(penalty >= THRESHOLD):
+        binary = str(int_to_binary(~int(binary, 2) & 0b11111111))
+
+    region[i, j, 0] = math.floor(
+        region[i, j, 0] / 8) * 8 + (int(binary[2]) + int(binary[1]) * 2 + int(binary[0]) * 4)
+    region[i, j, 1] = math.floor(
+        region[i, j, 1] / 8) * 8 + (int(binary[5]) + int(binary[4]) * 2 + int(binary[3]) * 4)
+    region[i, j, 2] = math.floor(
+        region[i, j, 2] / 4) * 4 + (int(binary[7]) + int(binary[6]) * 2)
+    
+    return region
+
+
+def embed_data(cap, writer, binary_data):
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     total_frames = cap.get(cv2.CAP_PROP_FRAME_COUNT)
+    pixel_count = len(binary_data)
+    index = 0
+    flag = False
+
+    ret, frame = cap.read()
+    if not ret:
+        print("No frames in cover video!")
+        return
+
+    region = frame[0:height, 0:width]
+
+    for i in range(0, height):
+        for j in range(0, width):
+            if(index == len(str(pixel_count))):
+                adaptive_inverted_lsb332_embedding(binary="00001010", region=region, i=i, j=j) # Embed binary of 10 as a delimiter
+                flag = True
+                break
+
+            binary = int_to_binary(int(str(pixel_count)[index]))
+            adaptive_inverted_lsb332_embedding(binary=binary, region=region, i=i, j=j)
+            index += 1
+        if(flag):
+            break
+
+    writer.write(frame)
+    
+    cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
 
     no_of_blocks = 1
 
@@ -113,12 +166,15 @@ def lsb332_embedding(cap, writer, binary_data):
 
     selected_frames = fs.histogram_difference(
         cap=cap, frame_count=no_of_frames)
+    
+    selected_frames.sort()
+    print(selected_frames)
 
     cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
 
-    # selected_regions = {}
+    selected_regions = {}
 
-    # for i in range(300):
+    # for i in range(1, 300):
     #     selected_regions[i] = [{'start': (0, 0), 'end': (200, 200)}]
 
     selected_regions = rs.PCA_Implementation(
@@ -127,28 +183,25 @@ def lsb332_embedding(cap, writer, binary_data):
     # selected_regions = rs.GWO(cap=cap, msg_size=math.ceil(math.sqrt(pixel_count)),
     #                         frame_list=selected_frames, no_of_blocks=no_of_blocks)
 
-    cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
-
+    cap.set(cv2.CAP_PROP_POS_FRAMES, 1) # Skipping the first frame
     frame_no = 0
     count = 0
     flag = False
+    sum = 0
 
     while True:
         ret, frame = cap.read()
         if not ret:
             break
 
+        frame_no = frame_no + 1
+
         if flag:
             writer.write(frame)
             continue
 
-        frame_no = frame_no + 1
-
         if frame_no in selected_regions.keys():
             for element in selected_regions[frame_no]:
-
-                """TODO"""
-
                 region = frame[element['start'][0]:element['end']
                                [0] + 1, element['start'][1]:element['end'][1] + 1]
                 region_height = element['end'][0] + 1 - element['start'][0]
@@ -159,28 +212,7 @@ def lsb332_embedding(cap, writer, binary_data):
                         binary = binary_data[count]
                         count += 1
 
-                        r_binary = int_to_binary(region[i, j, 0])
-                        g_binary = int_to_binary(region[i, j, 1])
-                        b_binary = int_to_binary(region[i, j, 2])
-
-                        r_penalty = (int(binary[0]) * 4) ^ int(r_binary[5]) + (
-                            int(binary[1]) * 2) ^ int(r_binary[6]) + (int(binary[2])) ^ int(r_binary[7])
-                        g_penalty = (int(binary[3]) * 4) ^ int(g_binary[5]) + (
-                            int(binary[4]) * 2) ^ int(g_binary[6]) + (int(binary[5])) ^ int(g_binary[7])
-                        b_penalty = (
-                            int(binary[6]) * 4) ^ int(b_binary[5]) + (int(binary[7]) * 2) ^ int(b_binary[6])
-
-                        penalty = r_penalty + g_penalty + b_penalty
-                        
-                        if(penalty >= THRESHOLD):
-                            binary = str(int_to_binary(~int(binary, 2) & 0b11111111))
-
-                        region[i, j, 0] = math.floor(
-                            region[i, j, 0] / 8) * 8 + (int(binary[2]) + int(binary[1]) * 2 + int(binary[0]) * 4)
-                        region[i, j, 1] = math.floor(
-                            region[i, j, 1] / 8) * 8 + (int(binary[5]) + int(binary[4]) * 2 + int(binary[3]) * 4)
-                        region[i, j, 2] = math.floor(
-                            region[i, j, 2] / 4) * 4 + (int(binary[7]) + int(binary[6]) * 2)
+                        adaptive_inverted_lsb332_embedding(binary=binary, region=region, i=i, j=j)
 
                         if (count == len(binary_data)):
                             flag = True
@@ -195,6 +227,7 @@ def lsb332_embedding(cap, writer, binary_data):
         writer.write(frame)
 
     if (count < len(binary_data)):
+        print(sum)
         print("\nData is large!")
     else:
         print("\nEmbedded successfully")
@@ -241,13 +274,13 @@ def main():
         flag = False
 
         if (file_type == 1):
-            lsb332_embedding(cap=cap, writer=writer,
-                             binary_data=text_to_binary("assets/secret_files/texts/input0.txt"))
+            embed_data(cap=cap, writer=writer,
+                             binary_data=text_to_binary("assets/secret_files/texts/input1.txt"))
         elif (file_type == 2):
-            lsb332_embedding(cap=cap, writer=writer,
+            embed_data(cap=cap, writer=writer,
                              binary_data=image_to_binary('assets/secret_files/images/input1.jpg'))
         elif (file_type == 3):
-            lsb332_embedding(cap=cap, writer=writer, binary_data=video_to_binary(
+            embed_data(cap=cap, writer=writer, binary_data=video_to_binary(
                 'assets/secret_files/videos/input1.mp4'))
         else:
             print("Invalid option!")

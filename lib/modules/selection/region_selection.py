@@ -304,6 +304,7 @@ def pca_analysis(y, block_size, height, width, no_of_blocks):
     # if multiple blocks to be selected
     blocks = []
     b = 0
+    threshold = 0.75
 
     max_pca = 0
     max_row, max_col = 0, 0
@@ -347,23 +348,32 @@ def pca_analysis(y, block_size, height, width, no_of_blocks):
             else:
                 propotion_first_component = -1
 
-            if (len(blocks) < no_of_blocks):
-                block = {}
-                block['pca'] = propotion_first_component
-                block['row'] = i
-                block['col'] = j
-                block['index'] = b
-                blocks.append(block)
-                b += 1
-            else:
-                # print("Changed")
-                # print(blocks)
-                ind = Find_Index_Min(blocks, propotion_first_component)
-                if (ind != -1):
-                    blocks[ind]['pca'] = propotion_first_component
-                    blocks[ind]['row'] = i
-                    blocks[ind]['col'] = j
-                    blocks[ind]['index'] = ind
+            # if (len(blocks) < no_of_blocks):
+            #     block = {}
+            #     block['pca'] = propotion_first_component
+            #     block['row'] = i
+            #     block['col'] = j
+            #     block['index'] = b
+            #     blocks.append(block)
+            #     b += 1
+            # else:
+            #     # print("Changed")
+            #     # print(blocks)
+            #     ind = Find_Index_Min(blocks, propotion_first_component)
+            #     if (ind != -1):
+            #         blocks[ind]['pca'] = propotion_first_component
+            #         blocks[ind]['row'] = i
+            #         blocks[ind]['col'] = j
+            #         blocks[ind]['index'] = ind
+
+            if(propotion_first_component > threshold):
+                if(len(blocks) < no_of_blocks):
+                    block = {}
+                    block['pca'] = propotion_first_component
+                    block['row'] = i
+                    block['col'] = j
+                    block['index'] = b
+                    blocks.append(block)
 
            # print(pca.singular_values_)
             """if(propotion_first_component > max_pca):
@@ -393,7 +403,7 @@ def Get_Regions(blocks, msg_size):
 
 
 def PCA_Implementation(cap, block_size, frame_list, no_of_blocks):
-    frame_no = 0
+    frame_no = -1
     robust_regions = {}
 
     height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
@@ -403,8 +413,9 @@ def PCA_Implementation(cap, block_size, frame_list, no_of_blocks):
         ret, frame = cap.read()
         if not ret:
             break
+
+        frame_no += 1
         if frame_no not in frame_list:
-            frame_no += 1
             continue
 
         # Extracting yuv components from the image
@@ -420,7 +431,6 @@ def PCA_Implementation(cap, block_size, frame_list, no_of_blocks):
         l = Get_Regions(block, block_size)
         robust_regions[frame_no] = l
         # print(robust_regions)
-        frame_no += 1
     return robust_regions
 
 

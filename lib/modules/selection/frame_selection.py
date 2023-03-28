@@ -24,6 +24,8 @@ def histogram_difference(cap, frame_count):
     hist_list = []
     prev_hist = None
 
+    cap.read() # skipping the first frame
+
     while True:
         ret, frame = cap.read()
 
@@ -47,6 +49,7 @@ def histogram_difference(cap, frame_count):
         prev_hist = hist
 
     key_frames = get_k_smallest(hist_list, frame_count)
+    key_frames = [x + 1 for x in key_frames]
     return key_frames
 
 
@@ -59,6 +62,8 @@ def ssim_based_frame_selection(cap, frame_count):
     index = 0
     ret1, frame1 = cap.read()
 
+    cap.read() # skipping the first frame
+    
     if ret1:
         while True:
             ret2, frame2 = cap.read()

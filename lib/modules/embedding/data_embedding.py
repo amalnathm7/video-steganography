@@ -1,14 +1,18 @@
-import io
-import sys
-sys.path.append("C:/Users/Meenakshi/Projects/video_steganography/lib/modules/")
-import selection.region_selection as rs
-import selection.frame_selection as fs
-from encryption.textenc import encrypt_text
-from encryption.imgenc import encrypt_image_data
-import os
 import math
 import cv2
 from PIL import Image
+import os
+import sys
+project_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, project_dir)
+from encryption.imgenc import encrypt_image_data
+from encryption.textenc import encrypt_text
+import selection.frame_selection as fs
+import selection.region_selection as rs
+import io
+
+
+THRESHOLD = 9
 
 
 def int_to_binary(n):
@@ -95,14 +99,15 @@ def lsb332_embedding(cap, writer, binary_data):
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     total_frames = cap.get(cv2.CAP_PROP_FRAME_COUNT)
-    
+
     no_of_blocks = 1
 
     no_of_frames = math.ceil(pixel_count / (min(width, height) * no_of_blocks))
 
     while no_of_frames > total_frames:
         no_of_blocks += 1
-        no_of_frames = math.ceil(pixel_count / (min(width, height) * no_of_blocks))
+        no_of_frames = math.ceil(pixel_count / (math.ceil(math.sqrt(min(width, height)))
+                                 * math.ceil(math.sqrt(min(width, height))) * no_of_blocks))
 
     block_size = math.ceil(math.sqrt(min(width, height)))
 
@@ -118,7 +123,7 @@ def lsb332_embedding(cap, writer, binary_data):
 
     selected_regions = rs.PCA_Implementation(
         cap=cap, block_size=block_size, frame_list=selected_frames, no_of_blocks=no_of_blocks)
-    
+
     # selected_regions = rs.GWO(cap=cap, msg_size=math.ceil(math.sqrt(pixel_count)),
     #                         frame_list=selected_frames, no_of_blocks=no_of_blocks)
 
@@ -153,6 +158,22 @@ def lsb332_embedding(cap, writer, binary_data):
                     for j in range(0, region_width):
                         binary = binary_data[count]
                         count += 1
+
+                        r_binary = int_to_binary(region[i, j, 0])
+                        g_binary = int_to_binary(region[i, j, 1])
+                        b_binary = int_to_binary(region[i, j, 2])
+
+                        r_penalty = (int(binary[0]) * 4) ^ int(r_binary[5]) + (
+                            int(binary[1]) * 2) ^ int(r_binary[6]) + (int(binary[2])) ^ int(r_binary[7])
+                        g_penalty = (int(binary[3]) * 4) ^ int(g_binary[5]) + (
+                            int(binary[4]) * 2) ^ int(g_binary[6]) + (int(binary[5])) ^ int(g_binary[7])
+                        b_penalty = (
+                            int(binary[6]) * 4) ^ int(b_binary[5]) + (int(binary[7]) * 2) ^ int(b_binary[6])
+
+                        penalty = r_penalty + g_penalty + b_penalty
+                        
+                        if(penalty >= THRESHOLD):
+                            binary = str(int_to_binary(~int(binary, 2) & 0b11111111))
 
                         region[i, j, 0] = math.floor(
                             region[i, j, 0] / 8) * 8 + (int(binary[2]) + int(binary[1]) * 2 + int(binary[0]) * 4)
@@ -221,10 +242,10 @@ def main():
 
         if (file_type == 1):
             lsb332_embedding(cap=cap, writer=writer,
-                             binary_data=text_to_binary("assets/secret_files/texts/input5.txt"))
+                             binary_data=text_to_binary("assets/secret_files/texts/input0.txt"))
         elif (file_type == 2):
             lsb332_embedding(cap=cap, writer=writer,
-                             binary_data=image_to_binary('assets/secret_files/images/input8.jpg'))
+                             binary_data=image_to_binary('assets/secret_files/images/input1.jpg'))
         elif (file_type == 3):
             lsb332_embedding(cap=cap, writer=writer, binary_data=video_to_binary(
                 'assets/secret_files/videos/input1.mp4'))

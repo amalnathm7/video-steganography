@@ -242,7 +242,7 @@ def Set_Coordinates(robust_regions, frame, frame_no, height, width, msg_size):
     coordinates = Get_Robust_Regions(frame, height, width, msg_size)
     b = {}
     b['start'] = (coordinates[0][0], coordinates[1][0])
-    b['end'] = (coordinates[0][1], coordinates[1][1])
+    b['end'] = (coordinates[1][0], coordinates[1][1])
     if (Check_Region(robust_regions, frame_no, b)) == 0:
         robust_regions[frame_no].append(b)
     else:

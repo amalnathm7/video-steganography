@@ -1,14 +1,15 @@
+import os
+import sys
+project_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, project_dir)
+import selection.frame_selection as fs
+import selection.region_selection as rs
+from decryption.imgdec import decrypt_image_data
+from decryption.textdec import decrypt_text
 import io
 import cv2
 import math
 from PIL import Image
-import numpy as np
-import sys
-sys.path.append("C:/Users/amaln/Desktop/Project/steganography/lib/modules/")
-from decryption.textdec import decrypt_text
-from decryption.imgdec import decrypt_image_data
-import selection.region_selection as rs
-import selection.frame_selection as fs
 
 
 def option(opt):
@@ -29,9 +30,8 @@ def binary_to_decimal(n):
 
 
 def lsb332_extraction(cap, type):
-
     """TODO"""
-    pixel_count = 133
+    pixel_count = 31848
 
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
@@ -43,7 +43,8 @@ def lsb332_extraction(cap, type):
 
     while no_of_frames > total_frames:
         no_of_blocks += 1
-        no_of_frames = math.ceil(pixel_count / (min(width, height) * no_of_blocks))
+        no_of_frames = math.ceil(pixel_count / (math.ceil(math.sqrt(min(width, height)))
+                                 * math.ceil(math.sqrt(min(width, height))) * no_of_blocks))
 
     block_size = math.ceil(math.sqrt(min(width, height)))
 
@@ -51,15 +52,15 @@ def lsb332_extraction(cap, type):
         cap=cap, frame_count=no_of_frames)
 
     cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
-    
+
     # selected_regions = {}
 
     # for i in range(300):
     #     selected_regions[i] = [{'start': (0, 0), 'end': (200, 200)}]
-    
+
     selected_regions = rs.PCA_Implementation(
         cap=cap, block_size=block_size, frame_list=selected_frames, no_of_blocks=no_of_blocks)
-    
+
     # selected_regions = rs.GWO(cap=cap, msg_size=math.ceil(math.sqrt(pixel_count)),
     #                         frame_list=selected_frames, no_of_blocks=no_of_blocks)
 
@@ -106,8 +107,13 @@ def lsb332_extraction(cap, type):
                         c = region[i, j, 2] - \
                             (math.floor(region[i, j, 2] / 4) * 4)
 
-                        num = binary_to_decimal(decimal_to_binary(a, 3) +
-                                                decimal_to_binary(b, 3) + decimal_to_binary(c, 2))
+                        binary = decimal_to_binary(
+                            a, 3) + decimal_to_binary(b, 3) + decimal_to_binary(c, 2)
+                        num = binary_to_decimal(binary)
+
+                        if(num >= 128):
+                            num = ~int(binary, 2) & 0b11111111
+
                         ch = chr(num)
 
                         if (extracted_len == -1 and ch == '$'):
@@ -127,11 +133,12 @@ def lsb332_extraction(cap, type):
                             data += ch
                         else:
                             if (type == 1):
-                                text_bytes = decrypt_text(bytes.fromhex(data), iv, key)
+                                text_bytes = decrypt_text(
+                                    bytes.fromhex(data), iv, key)
 
                                 file = open(
                                     "assets/extracted_files/texts/output.txt", "w")
-                                
+
                                 file.write(text_bytes)
 
                                 print(
@@ -139,11 +146,13 @@ def lsb332_extraction(cap, type):
                                 flag = True
                                 break
                             elif (type == 2):
-                                image_bytes = decrypt_image_data(ciphertext=bytes.fromhex(data), key=key, iv=iv)
+                                image_bytes = decrypt_image_data(
+                                    ciphertext=bytes.fromhex(data), key=key, iv=iv)
 
                                 image = Image.open(io.BytesIO(image_bytes))
-                                
-                                image.save('assets/extracted_files/images/output.jpg')
+
+                                image.save(
+                                    'assets/extracted_files/images/output.jpg')
 
                                 print(
                                     "Output file at assets/extracted_files/images/output.jpg successfully created")

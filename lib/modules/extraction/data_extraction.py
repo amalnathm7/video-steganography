@@ -87,6 +87,8 @@ def extract_data(cap, type):
     selected_frames = fs.histogram_difference(
         cap=cap, frame_count=no_of_frames)
     
+    # TODO
+    
     selected_frames.sort()
     print(selected_frames)
 
@@ -103,13 +105,13 @@ def extract_data(cap, type):
     # selected_regions = rs.GWO(cap=cap, msg_size=math.ceil(math.sqrt(pixel_count)),
     #                         frame_list=selected_frames, no_of_blocks=no_of_blocks)
 
-    cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
+    cap.set(cv2.CAP_PROP_POS_FRAMES, 1) # Skipping first frame
 
     data = ""
     flag = False
+    frame_no = 0
     total_len = 0
     extracted_len = -1
-    frame_no = -1
     height = -1
     width = -1
     total_frames = -1
@@ -123,7 +125,7 @@ def extract_data(cap, type):
 
         frame_no = frame_no + 1
 
-        if frame_no in selected_regions.keys():
+        if frame_no in selected_frames:
             for element in selected_regions[frame_no]:
                 region = frame[element['start'][0]:element['end']
                                [0] + 1, element['start'][1]:element['end'][1] + 1]

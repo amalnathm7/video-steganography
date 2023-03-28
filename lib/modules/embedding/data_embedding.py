@@ -167,6 +167,8 @@ def embed_data(cap, writer, binary_data):
     selected_frames = fs.histogram_difference(
         cap=cap, frame_count=no_of_frames)
     
+    # TODO
+    
     selected_frames.sort()
     print(selected_frames)
 
@@ -187,7 +189,6 @@ def embed_data(cap, writer, binary_data):
     frame_no = 0
     count = 0
     flag = False
-    sum = 0
 
     while True:
         ret, frame = cap.read()
@@ -200,7 +201,7 @@ def embed_data(cap, writer, binary_data):
             writer.write(frame)
             continue
 
-        if frame_no in selected_regions.keys():
+        if frame_no in selected_frames:
             for element in selected_regions[frame_no]:
                 region = frame[element['start'][0]:element['end']
                                [0] + 1, element['start'][1]:element['end'][1] + 1]
@@ -227,7 +228,6 @@ def embed_data(cap, writer, binary_data):
         writer.write(frame)
 
     if (count < len(binary_data)):
-        print(sum)
         print("\nData is large!")
     else:
         print("\nEmbedded successfully")
@@ -275,7 +275,7 @@ def main():
 
         if (file_type == 1):
             embed_data(cap=cap, writer=writer,
-                             binary_data=text_to_binary("assets/secret_files/texts/input1.txt"))
+                             binary_data=text_to_binary("assets/secret_files/texts/input0.txt"))
         elif (file_type == 2):
             embed_data(cap=cap, writer=writer,
                              binary_data=image_to_binary('assets/secret_files/images/input1.jpg'))

@@ -29,7 +29,7 @@ def binary_to_decimal(n):
     return int(n, 2)
 
 
-def adaptive_inverted_lsb332_extraction(region, i, j):
+def adaptive_lsb332_extraction(region, i, j):
     a = region[i, j, 0] - (math.floor(region[i, j, 0] / 8) * 8)
     b = region[i, j, 1] - (math.floor(region[i, j, 1] / 8) * 8)
     c = region[i, j, 2] - (math.floor(region[i, j, 2] / 4) * 4)
@@ -59,7 +59,7 @@ def extract_data(cap, type):
 
     for i in range(0, height):
         for j in range(0, width):
-            num = adaptive_inverted_lsb332_extraction(region=region, i=i, j=j)
+            num = adaptive_lsb332_extraction(region=region, i=i, j=j)
 
             if (num == 10):
                 pixel_count = int(data)
@@ -134,7 +134,7 @@ def extract_data(cap, type):
 
                 for i in range(0, region_height):
                     for j in range(0, region_width):
-                        ch = chr(adaptive_inverted_lsb332_extraction(
+                        ch = chr(adaptive_lsb332_extraction(
                             region=region, i=i, j=j))
 
                         if (extracted_len == -1 and ch == '$'):

@@ -94,7 +94,7 @@ def video_to_binary(file_path):
     # return binary_data
 
 
-def adaptive_inverted_lsb332_embedding(binary, region, i, j):
+def adaptive_lsb332_embedding(binary, region, i, j):
     r_binary = int_to_binary(region[i, j, 0])
     g_binary = int_to_binary(region[i, j, 1])
     b_binary = int_to_binary(region[i, j, 2])
@@ -139,12 +139,12 @@ def embed_data(cap, writer, binary_data):
     for i in range(0, height):
         for j in range(0, width):
             if(index == len(str(pixel_count))):
-                adaptive_inverted_lsb332_embedding(binary="00001010", region=region, i=i, j=j) # Embed binary of 10 as a delimiter
+                adaptive_lsb332_embedding(binary="00001010", region=region, i=i, j=j) # Embed binary of 10 as a delimiter
                 flag = True
                 break
 
             binary = int_to_binary(int(str(pixel_count)[index]))
-            adaptive_inverted_lsb332_embedding(binary=binary, region=region, i=i, j=j)
+            adaptive_lsb332_embedding(binary=binary, region=region, i=i, j=j)
             index += 1
         if(flag):
             break
@@ -213,7 +213,7 @@ def embed_data(cap, writer, binary_data):
                         binary = binary_data[count]
                         count += 1
 
-                        adaptive_inverted_lsb332_embedding(binary=binary, region=region, i=i, j=j)
+                        adaptive_lsb332_embedding(binary=binary, region=region, i=i, j=j)
 
                         if (count == len(binary_data)):
                             flag = True

@@ -38,11 +38,11 @@ def main():
 
         if psnr(frame, frame1) != float("inf"):
             total_psnr += psnr(frame, frame1)
-            count+=1
+            count += 1
 
         if ssim(frame, frame1)[0] != 1:
             total_ssim += ssim(frame, frame1)[0]
-            count1+=1
+            count1 += 1
 
     print("Average PSNR: " + str(total_psnr/count))
     print("Average SSIM: " + str(total_ssim/count1))

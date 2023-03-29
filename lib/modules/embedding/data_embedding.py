@@ -27,37 +27,23 @@ def option(opt):
 
 def text_to_binary(file_path):
     file = open(file_path, "r")
-
     data = file.read()
-
     encrypted_data, iv, key = encrypt_text(data)
-
     data_hex = encrypted_data.hex()
-
     data = key.hex() + "$" + iv.hex() + "$" + str(len(data_hex)) + "$" + data_hex
-
     binary_data = [format(ord(char), '08b') for char in data]
-
     return binary_data
 
 
 def image_to_binary(file_path):
     img = Image.open(file_path)
-
     bytes_io = io.BytesIO()
-
     img.save(bytes_io, format=img.format.lower())
-
     bytes_data = bytes_io.getvalue()
-
     encrypted_data, key, iv = encrypt_image_data(bytes_data)
-
     data_hex = encrypted_data.hex()
-
     data = key.hex() + "$" + iv.hex() + "$" + str(len(data_hex)) + "$" + data_hex
-
     binary_data = [format(ord(char), '08b') for char in data]
-
     return binary_data
 
 

@@ -3,9 +3,9 @@ from Cryptodome.Util.Padding import pad
 
 key = b'0123456789abcdef' * 2
 
-def encrypt_text(msg):
+def encrypt_text(data):
     cipher = AES.new(key, AES.MODE_CBC)
     
-    ciphertext = cipher.encrypt(pad(msg.encode(), AES.block_size))
+    ciphertext = cipher.encrypt(pad(data, AES.block_size))
     
     return ciphertext, cipher.iv, key

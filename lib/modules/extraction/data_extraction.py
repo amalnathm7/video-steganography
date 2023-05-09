@@ -58,6 +58,8 @@ def extract_data(cap, type):
 
     region = frame[0:height, 0:width]
 
+    print("\nIdentifying selected frames")
+
     for i in range(0, height):
         for j in range(0, width):
             num = adaptive_lsb332_extraction(region=region, i=i, j=j)
@@ -91,8 +93,10 @@ def extract_data(cap, type):
 
     block_size = math.ceil(math.sqrt(min(width, height)))
 
-    selected_frames.sort()
-    print(selected_frames)
+    # selected_frames.sort()
+    # print(f'\nSelected frames: {selected_frames}')
+
+    print("\nIdentifying selected regions")
 
     cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
 
@@ -165,7 +169,7 @@ def extract_data(cap, type):
                                 file.write(text_bytes)
 
                                 print(
-                                    "Output file at assets/extracted_files/texts/output.txt successfully created")
+                                    "\nOutput file assets/extracted_files/texts/output.txt successfully created\n")
                                 flag = True
                                 break
                             elif (type == 2):
@@ -178,7 +182,7 @@ def extract_data(cap, type):
                                     'assets/extracted_files/images/output.jpg')
 
                                 print(
-                                    "Output file at assets/extracted_files/images/output.jpg successfully created")
+                                    "\nOutput file assets/extracted_files/images/output.jpg successfully created\n")
                                 flag = True
                                 break
                             elif (type == 3):
@@ -191,7 +195,7 @@ def extract_data(cap, type):
                                 file.write(audio_bytes)
 
                                 print(
-                                    "Output file at assets/extracted_files/audios/output.mp3 successfully created")
+                                    "\nOutput file assets/extracted_files/audios/output.mp3 successfully created\n")
                                 flag = True
                                 break
                             elif (type == 4):
@@ -204,7 +208,7 @@ def extract_data(cap, type):
                                 file.write(video_bytes)
 
                                 print(
-                                    "Output file at assets/extracted_files/videos/output.mp4 successfully created")
+                                    "\nOutput file assets/extracted_files/videos/output.mp4 successfully created\n")
                                 flag = True
                                 break
                     if (flag):

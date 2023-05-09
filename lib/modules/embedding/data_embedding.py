@@ -121,13 +121,17 @@ def embed_data(cap, writer, binary_data):
 
     block_size = math.ceil(math.sqrt(min(width, height)))
 
+    print("\nSelecting robust frames")
+
     selected_frames = fs.histogram_difference(
         cap=cap, frame_count=no_of_frames)
 
     # TODO
 
-    selected_frames.sort()
-    print(selected_frames)
+    # selected_frames.sort()
+    # print(f'\nSelected frames: {selected_frames}')
+
+    print("\nSelecting robust regions")
 
     cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
 
@@ -217,7 +221,7 @@ def embed_data(cap, writer, binary_data):
     if (count < len(binary_data)):
         print("\nData is large!")
     else:
-        print("\nEmbedded successfully")
+        print("\nEmbedded successfully\n")
 
     writer.release()
     cap.release()

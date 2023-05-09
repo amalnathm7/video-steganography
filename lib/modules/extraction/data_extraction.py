@@ -1,15 +1,15 @@
+import sys
+import os
+project_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, project_dir)
+import selection.frame_selection as fs
+import selection.region_selection as rs
+from decryption.imgdec import decrypt_image_data
+from decryption.textdec import decrypt_text
 from PIL import Image
 import math
 import cv2
 import io
-import os
-import sys
-project_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, project_dir)
-from decryption.textdec import decrypt_text
-from decryption.imgdec import decrypt_image_data
-import selection.region_selection as rs
-import selection.frame_selection as fs
 
 
 def option(opt):
@@ -34,7 +34,8 @@ def adaptive_lsb332_extraction(region, i, j):
     b = region[i, j, 1] - (math.floor(region[i, j, 1] / 8) * 8)
     c = region[i, j, 2] - (math.floor(region[i, j, 2] / 4) * 4)
 
-    binary = decimal_to_binary(a, 3) + decimal_to_binary(b, 3) + decimal_to_binary(c, 2)
+    binary = decimal_to_binary(
+        a, 3) + decimal_to_binary(b, 3) + decimal_to_binary(c, 2)
     num = binary_to_decimal(binary)
 
     if (num >= 128):
@@ -49,6 +50,8 @@ def extract_data(cap, type):
     total_frames = cap.get(cv2.CAP_PROP_FRAME_COUNT)
     data = ""
     flag = False
+    pixel_count = 0
+    selected_frames = []
 
     ret, frame = cap.read()
     if not ret:
@@ -61,12 +64,18 @@ def extract_data(cap, type):
         for j in range(0, width):
             num = adaptive_lsb332_extraction(region=region, i=i, j=j)
 
-            if (num == 10):
-                pixel_count = int(data)
-                flag = True
-                break
+            if (chr(num) == '$'):
+                if (pixel_count == 0):
+                    pixel_count = int(data)
+                    data = ""
+                else:
+                    flag = True
+                    break
+            elif (chr(num) == ','):
+                selected_frames.append(int(data))
+                data = ""
             else:
-                data += str(num)
+                data += chr(num)
 
         if (flag):
             break
@@ -84,11 +93,6 @@ def extract_data(cap, type):
 
     block_size = math.ceil(math.sqrt(min(width, height)))
 
-    selected_frames = fs.histogram_difference(
-        cap=cap, frame_count=no_of_frames)
-    
-    # TODO
-    
     selected_frames.sort()
     print(selected_frames)
 
@@ -105,7 +109,7 @@ def extract_data(cap, type):
     # selected_regions = rs.GWO(cap=cap, msg_size=math.ceil(math.sqrt(pixel_count)),
     #                         frame_list=selected_frames, no_of_blocks=no_of_blocks)
 
-    cap.set(cv2.CAP_PROP_POS_FRAMES, 1) # Skipping first frame
+    cap.set(cv2.CAP_PROP_POS_FRAMES, 1)  # Skipping first frame
 
     data = ""
     flag = False
@@ -194,6 +198,11 @@ def extract_data(cap, type):
     cv2.destroyAllWindows()
 
 
+def create_folder(folder_path):
+    if not os.path.exists(folder_path):
+        os.makedirs(folder_path)
+
+
 def main():
     print("\nVideo Steganography")
 
@@ -211,6 +220,14 @@ def main():
     while (flag):
         print("\n1. Text\n2. Image\n3. Video\n")
         file_type = int(input("Select secret file type: "))
+
+        match (file_type):
+            case 1:
+                create_folder("assets/extracted_files/texts")
+            case 2:
+                create_folder("assets/extracted_files/images")
+            case 3:
+                create_folder("assets/extracted_files/videos")
 
         flag = False
 

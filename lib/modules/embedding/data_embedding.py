@@ -118,27 +118,6 @@ def embed_data(cap, writer, binary_data):
         print("No frames in cover video!")
         return
 
-    region = frame[0:height, 0:width]
-
-    for i in range(0, height):
-        for j in range(0, width):
-            if (index == len(str(pixel_count))):
-                # Embed binary of 10 as a delimiter
-                adaptive_lsb332_embedding(
-                    binary="00001010", region=region, i=i, j=j)
-                flag = True
-                break
-
-            binary = int_to_binary(int(str(pixel_count)[index]))
-            adaptive_lsb332_embedding(binary=binary, region=region, i=i, j=j)
-            index += 1
-        if (flag):
-            break
-
-    writer.write(frame)
-
-    cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
-
     no_of_blocks = 1
 
     no_of_frames = math.ceil(pixel_count / (min(width, height) * no_of_blocks))
@@ -156,7 +135,6 @@ def embed_data(cap, writer, binary_data):
     # TODO
 
     selected_frames.sort()
-    print(len(selected_frames))
     print(selected_frames)
 
     cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
@@ -171,6 +149,37 @@ def embed_data(cap, writer, binary_data):
 
     # selected_regions = rs.GWO(cap=cap, msg_size=math.ceil(math.sqrt(pixel_count)),
     #                         frame_list=selected_frames, no_of_blocks=no_of_blocks)
+
+    region = frame[0:height, 0:width]
+
+    selected_frames_string = ""
+
+    for i in range(0, len(selected_frames)):
+        selected_frames_string += f'{str(selected_frames[i])},'
+    
+    init_string = f'{pixel_count}${selected_frames_string}$'
+
+    count = 0
+
+    for i in range(0, height):
+        for j in range(0, width):
+            init_binary = [format(ord(char), '08b') for char in init_string]
+            adaptive_lsb332_embedding(binary=init_binary[count], region=region, i=i, j=j)
+            count += 1
+
+            if (count == len(init_binary)):
+                flag = True
+                break
+            
+            index += 1
+
+        if (flag):
+            break
+
+    if (count != len(init_binary)):
+        print("Data is large!")
+
+    writer.write(frame)
 
     cap.set(cv2.CAP_PROP_POS_FRAMES, 1)  # Skipping the first frame
     frame_no = 1

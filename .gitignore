@@ -1,2 +1,5 @@
 /assets/stego_videos
-/assets/extracted_files
+/assets/extracted_files/images
+/assets/extracted_files/texts
+/assets/extracted_files/audios
+/assets/extracted_files/videos

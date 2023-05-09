@@ -186,7 +186,7 @@ def extract_data(cap, type):
                                     bytes.fromhex(data), iv, key)
 
                                 file = open(
-                                    "assets/extracted_files/audios/output.wav", "wb")
+                                    "assets/extracted_files/audios/output.mp3", "wb")
 
                                 file.write(audio_bytes)
 

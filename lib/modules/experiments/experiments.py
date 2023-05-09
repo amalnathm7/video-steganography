@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 from sewar.full_ref import psnr, ssim
 from scipy.stats import pearsonr
-
+import csv
 def option(opt):
     match opt:
         case 1: return "akiyo"
@@ -77,11 +77,14 @@ def main():
     average_ssim = total_ssim / count
     average_ncc = total_ncc / count
     average_ber = total_ber / count
-
-    print("Average PSNR:", average_psnr)
-    print("Average SSIM:", average_ssim)
-    print("Average NCC:", average_ncc)
-    print("Average BER:", average_ber)
+    with open("output.csv","a") as file:
+        writter = csv.writer(file)
+        # writter.writerow(["Average PSNR","Average SSIM","Average NCC","Average BER"])
+        writter.writerow([average_psnr, average_ssim,average_ncc,average_ber])
+    # print("Average PSNR:", average_psnr)
+    # print("Average SSIM:", average_ssim)
+    # print("Average NCC:", average_ncc)
+    # print("Average BER:", average_ber)
 
     cap.release()
     cap1.release()

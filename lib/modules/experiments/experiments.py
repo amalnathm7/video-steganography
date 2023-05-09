@@ -12,12 +12,12 @@ def option(opt):
         case 5: return "crew"
 
 def calculate_ncc(original_signal, received_signal):
-    ncc, _ = pearsonr(original_signal, received_signal)
+    ncc, _ = pearsonr(original_signal.flatten(), received_signal.flatten())
     return ncc
 
 def calculate_ber(original_signal, received_signal):
-    original_binary = np.where(original_signal >= 0.5, 1, 0)
-    received_binary = np.where(received_signal >= 0.5, 1, 0)
+    original_binary = np.where(original_signal.flatten() >= 128, 1, 0)
+    received_binary = np.where(received_signal.flatten() >= 128, 1, 0)
     num_errors = np.sum(original_binary != received_binary)
     ber = num_errors / len(original_binary)
     return ber
@@ -29,6 +29,7 @@ def main():
     total_ncc = 0
     total_ber = 0
     count = 0
+    index = 0
     while flag:
         print("1. akiyo\n2. bowing\n3. bus\n4. city\n5. crew\n")
         opt = int(input("Select video: "))
@@ -51,31 +52,27 @@ def main():
         psnr_val = psnr(frame, frame1)
 
         if psnr_val != float("inf"):
+            ssim_val = ssim(frame, frame1)[0]
+            ncc_val = calculate_ncc(frame, frame1)
+            ber_val = calculate_ber(frame, frame1)
+
             total_psnr += psnr_val
-            count += 1
-
-        ssim_val = ssim(frame, frame1)[0]
-
-        if ssim_val != 1:
             total_ssim += ssim_val
+            total_ncc += ncc_val
+            total_ber += ber_val
 
-        frame_gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        frame1_gray = cv2.cvtColor(frame1, cv2.COLOR_BGR2GRAY)
+            print(f'Frame {index}')
+            print(psnr_val)
+            print(ssim_val)
+            print(ncc_val)
+            print(ber_val)
+            print("\n")
 
-        # Calculate NCC and BER
-        ncc_val = calculate_ncc(frame_gray.flatten(), frame1_gray.flatten())
-        ber_val = calculate_ber(frame_gray.flatten(), frame1_gray.flatten())
+            count += 1
+        
+        index += 1
 
-        total_ncc += ncc_val
-        total_ber += ber_val
-
-        print(f'Frame {count}')
-        print(psnr_val)
-        print(ssim_val)
-        print(ncc_val)
-        print(ber_val)
-        print("\n")
-
+    print(count)
     average_psnr = total_psnr / count
     average_ssim = total_ssim / count
     average_ncc = total_ncc / count

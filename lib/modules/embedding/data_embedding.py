@@ -156,6 +156,7 @@ def embed_data(cap, writer, binary_data):
     # TODO
 
     selected_frames.sort()
+    print(len(selected_frames))
     print(selected_frames)
 
     cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
@@ -172,7 +173,7 @@ def embed_data(cap, writer, binary_data):
     #                         frame_list=selected_frames, no_of_blocks=no_of_blocks)
 
     cap.set(cv2.CAP_PROP_POS_FRAMES, 1)  # Skipping the first frame
-    frame_no = 0
+    frame_no = 1
     count = 0
     flag = False
 
@@ -180,8 +181,6 @@ def embed_data(cap, writer, binary_data):
         ret, frame = cap.read()
         if not ret:
             break
-
-        frame_no = frame_no + 1
 
         if flag:
             writer.write(frame)
@@ -213,6 +212,7 @@ def embed_data(cap, writer, binary_data):
                     break
 
         writer.write(frame)
+        frame_no = frame_no + 1
 
     if (count < len(binary_data)):
         print("\nData is large!")

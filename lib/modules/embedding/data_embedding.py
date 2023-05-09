@@ -262,7 +262,7 @@ def data_embedding():
 
         if (file_type == 1):
             embed_data(cap=cap, writer=writer,
-                       binary_data=text_to_binary("assets/secret_files/texts/input4.txt"))
+                       binary_data=text_to_binary("assets/secret_files/texts/input0.txt"))
         elif (file_type == 2):
             embed_data(cap=cap, writer=writer,
                        binary_data=image_to_binary('assets/secret_files/images/input1.jpg'))

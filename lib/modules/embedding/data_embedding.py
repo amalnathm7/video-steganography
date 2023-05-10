@@ -75,14 +75,12 @@ def embed_data(cap, writer, binary_data):
 
     no_of_blocks = 1
 
-    no_of_frames = math.ceil(pixel_count / (min(width, height) * no_of_blocks))
+    block_size = math.floor(math.sqrt(min(width, height)))
+    no_of_frames = math.ceil(pixel_count / (block_size * block_size * no_of_blocks))
 
     while no_of_frames > total_frames:
         no_of_blocks += 1
-        no_of_frames = math.ceil(pixel_count / (math.ceil(math.sqrt(min(width, height)))
-                                 * math.ceil(math.sqrt(min(width, height))) * no_of_blocks))
-
-    block_size = math.ceil(math.sqrt(min(width, height)))
+        no_of_frames = math.ceil(pixel_count / (block_size * block_size * no_of_blocks))
 
     print("\nSelecting robust frames")
 
@@ -238,7 +236,7 @@ def data_embedding():
 
         match file_type:
             case 1:
-                input_file_path = "assets/secret_files/texts/input1.txt"
+                input_file_path = "assets/secret_files/texts/input6.txt"
             case 2:
                 input_file_path = "assets/secret_files/images/input1.jpg"
             case 3:

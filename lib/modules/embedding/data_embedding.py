@@ -123,11 +123,11 @@ def embed_data(cap, writer, binary_data):
 
     print("\nSelecting robust frames")
 
-    selected_frames = fs.histogram_difference(
+    selected_frames = fs.ssim_based_frame_selection(
         cap=cap, frame_count=no_of_frames)
     
     # selected_frames = []
-    # for i in range(0, total_frames):
+    # for i in range(0, int(total_frames)):
     #     selected_frames.append(i)
 
     # selected_frames.sort()
@@ -268,7 +268,7 @@ def data_embedding():
 
         if (file_type == 1):
             embed_data(cap=cap, writer=writer,
-                       binary_data=text_to_binary("assets/secret_files/texts/input1.txt"))
+                       binary_data=text_to_binary("assets/secret_files/texts/input4.txt"))
         elif (file_type == 2):
             embed_data(cap=cap, writer=writer,
                        binary_data=image_to_binary('assets/secret_files/images/input1.jpg'))

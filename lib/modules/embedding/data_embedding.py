@@ -125,8 +125,9 @@ def embed_data(cap, writer, binary_data):
 
     selected_frames = fs.histogram_difference(
         cap=cap, frame_count=no_of_frames)
-
-    # TODO
+    
+    # for i in range(0, total_frames):
+    #     selected_frames.append(i)
 
     # selected_frames.sort()
     # print(f'\nSelected frames: {selected_frames}')

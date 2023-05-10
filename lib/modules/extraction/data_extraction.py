@@ -4,10 +4,8 @@ project_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, project_dir)
 import selection.region_selection as rs
 from preprocessing.decrypt import decrypt_data
-from PIL import Image
 import math
 import cv2
-import io
 
 
 def option(opt):

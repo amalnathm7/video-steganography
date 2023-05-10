@@ -6,7 +6,6 @@ kiwisolver==1.4.4
 numpy==1.24.3
 opencv-python==4.7.0.72
 packaging==23.1
-Pillow==9.5.0
 pycryptodomex==3.17
 pyparsing==3.0.9
 python-dateutil==2.8.2

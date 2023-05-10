@@ -2,13 +2,11 @@ import os
 import sys
 project_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, project_dir)
-from PIL import Image
 import cv2
 import math
 from preprocessing.encrypt import encrypt_data
 import selection.frame_selection as fs
 import selection.region_selection as rs
-import io
 
 
 def int_to_binary(n):
@@ -22,52 +20,6 @@ def option(opt):
         case 3: return "bus"
         case 4: return "city"
         case 5: return "crew"
-
-
-def text_to_binary(file_path):
-    print("\nAccessing file " + file_path)
-    file = open(file_path, "r")
-    data = file.read()
-    encrypted_data, iv, key = encrypt_data(data, isText=True)
-    data_hex = encrypted_data.hex()
-    data = key.hex() + "$" + iv.hex() + "$" + str(len(data_hex)) + "$" + data_hex
-    binary_data = [format(ord(char), '08b') for char in data]
-    return binary_data
-
-
-def image_to_binary(file_path):
-    print("\nAccessing file " + file_path)
-    img = Image.open(file_path)
-    bytes_io = io.BytesIO()
-    img.save(bytes_io, format=img.format.lower())
-    bytes_data = bytes_io.getvalue()
-    encrypted_data, key, iv = encrypt_data(bytes_data)
-    data_hex = encrypted_data.hex()
-    data = key.hex() + "$" + iv.hex() + "$" + str(len(data_hex)) + "$" + data_hex
-    binary_data = [format(ord(char), '08b') for char in data]
-    return binary_data
-
-
-def audio_to_binary(file_path):
-    print("\nAccessing file " + file_path)
-    file = open(file_path, "rb")
-    data = file.read()
-    encrypted_data, iv, key = encrypt_data(data)
-    data_hex = encrypted_data.hex()
-    data = key.hex() + "$" + iv.hex() + "$" + str(len(data_hex)) + "$" + data_hex
-    binary_data = [format(ord(char), '08b') for char in data]
-    return binary_data
-
-
-def video_to_binary(file_path):
-    print("\nAccessing file " + file_path)
-    file = open(file_path, "rb")
-    data = file.read()
-    encrypted_data, iv, key = encrypt_data(data)
-    data_hex = encrypted_data.hex()
-    data = key.hex() + "$" + iv.hex() + "$" + str(len(data_hex)) + "$" + data_hex
-    binary_data = [format(ord(char), '08b') for char in data]
-    return binary_data
 
 
 def to_binary(file_path):
@@ -204,7 +156,11 @@ def embed_data(cap, writer, binary_data):
             continue
 
         if frame_no in selected_frames:
+            index = 0
+
             for element in selected_regions[frame_no]:
+                index += 1
+                
                 region = frame[element['start'][0]:element['end']
                                [0] + 1, element['start'][1]:element['end'][1] + 1]
                 region_height = element['end'][0] + 1 - element['start'][0]
@@ -227,6 +183,9 @@ def embed_data(cap, writer, binary_data):
 
                 if (flag):
                     break
+
+            print(index)
+            print(no_of_blocks)
 
         writer.write(frame)
         frame_no = frame_no + 1

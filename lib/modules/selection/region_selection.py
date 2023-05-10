@@ -308,10 +308,12 @@ def Find_Threshold(y,block_size,height,width,no_of_blocks):
                 break
 
             r = y[i:i+block_size, j:j+block_size]
-            greater_sum = 0
-            greater_count = 0
-            lesser_count = 0
-            lesser_sum = 0
+
+            #Used for Thresholding method 2
+            # greater_sum = 0
+            # greater_count = 0
+            # lesser_count = 0
+            # lesser_sum = 0
 
             # NOTE: For storing the data instead of taking nXn matrix take 1xn matrix and check
             # NOTE: For storing the data take ceil(root(n))xceil(root(n)) size of block to fill the entire block
@@ -342,6 +344,10 @@ def Find_Threshold(y,block_size,height,width,no_of_blocks):
             else:
                 propotion_first_component = -1
 
+            f = open("lib/modules/selection/region.txt","a")
+            f.write("\n REgion {},{} - {},{}: \n{}".format(i,j,i+block_size,j+block_size,propotion_first_component))
+            f.close()
+
             #METHOD 1
             """if (len(blocks) < no_of_blocks):
                 block = {}
@@ -360,37 +366,41 @@ def Find_Threshold(y,block_size,height,width,no_of_blocks):
                     blocks[ind]['row'] = i
                     blocks[ind]['col'] = j
                     blocks[ind]['index'] = ind"""
-            #print("H"+str(threshold))
-            """if(propotion_first_component >= threshold):
-                greater_sum = greater_sum+propotion_first_component
-                greater_count = greater_count+1
-            else:
-                lesser_sum = lesser_sum+propotion_first_component
-                lesser_count = lesser_count+1"""
+            
+            #Thresholding Method 2
+            # if(propotion_first_component >= threshold):
+            #     greater_sum = greater_sum+propotion_first_component
+            #     greater_count = greater_count+1
+            # else:
+            #     lesser_sum = lesser_sum+propotion_first_component
+            #     lesser_count = lesser_count+1
             summ =  summ+propotion_first_component
             count = count+1
-        """if((greater_count == 0)and(lesser_count == 0)):
-            avg_threshold = 5
-        elif (greater_count == 0):
-            lesser_mean = lesser_sum/lesser_count
-            avg_threshold = lesser_mean
-        elif (lesser_count == 0):
-            greater_mean = greater_sum/greater_count
-            avg_threshold = greater_mean
-        else:
-            greater_mean = greater_sum/greater_count
-            lesser_mean = lesser_sum/lesser_count
-            avg_threshold = greater_mean+lesser_mean/2"""
+
+        #Thresholding Method 2
+        # if((greater_count == 0)and(lesser_count == 0)):
+        #     avg_threshold = 5
+        # elif (greater_count == 0):
+        #     lesser_mean = lesser_sum/lesser_count
+        #     avg_threshold = lesser_mean
+        # elif (lesser_count == 0):
+        #     greater_mean = greater_sum/greater_count
+        #     avg_threshold = greater_mean
+        # else:
+        #     greater_mean = greater_sum/greater_count
+        #     lesser_mean = lesser_sum/lesser_count
+        #     avg_threshold = greater_mean+lesser_mean/2
     threshold = summ/count
     
-    """print("Current threshold = {} and new threshold = {} diff= {}".format(threshold,avg_threshold,abs(threshold-avg_threshold)))
-        if(abs(threshold - avg_threshold) <= max_difference):
-            threshold = avg_threshold
-            break
-        else:
-            print("Here")
-            threshold = avg_threshold
-            print("Now threshold is: "+str(threshold))"""
+    #Threshold Method 2:
+    # print("Current threshold = {} and new threshold = {} diff= {}".format(threshold,avg_threshold,abs(threshold-avg_threshold)))
+    #     if(abs(threshold - avg_threshold) <= max_difference):
+    #         threshold = avg_threshold
+    #         break
+    #     else:
+    #         print("Here")
+    #         threshold = avg_threshold
+    #         print("Now threshold is: "+str(threshold))
     return threshold
 def pca_analysis(y, block_size, height, width, no_of_blocks):
 
@@ -400,6 +410,9 @@ def pca_analysis(y, block_size, height, width, no_of_blocks):
 
     threshold = Find_Threshold(y,block_size,height,width,no_of_blocks)
     # print("The threshold is"+str(threshold))
+    f = open("lib/modules/selection/region.txt","a")
+    f.write("\n THreshold selected: \n{}".format(threshold))
+    f.close()
 
     max_pca = 0
     max_row, max_col = 0, 0
@@ -442,33 +455,34 @@ def pca_analysis(y, block_size, height, width, no_of_blocks):
                 propotion_first_component = first_component_sq/summation
             else:
                 propotion_first_component = -1
+                
 
-            # if (len(blocks) < no_of_blocks):
-            #     block = {}
-            #     block['pca'] = propotion_first_component
-            #     block['row'] = i
-            #     block['col'] = j
-            #     block['index'] = b
-            #     blocks.append(block)
-            #     b += 1
-            # else:
-            #     # print("Changed")
-            #     # print(blocks)
-            #     ind = Find_Index_Min(blocks, propotion_first_component)
-            #     if (ind != -1):
-            #         blocks[ind]['pca'] = propotion_first_component
-            #         blocks[ind]['row'] = i
-            #         blocks[ind]['col'] = j
-            #         blocks[ind]['index'] = ind
+            if (len(blocks) < no_of_blocks):
+                block = {}
+                block['pca'] = propotion_first_component
+                block['row'] = i
+                block['col'] = j
+                block['index'] = b
+                blocks.append(block)
+                b += 1
+            else:
+                # print("Changed")
+                # print(blocks)
+                ind = Find_Index_Min(blocks, propotion_first_component)
+                if (ind != -1):
+                    blocks[ind]['pca'] = propotion_first_component
+                    blocks[ind]['row'] = i
+                    blocks[ind]['col'] = j
+                    blocks[ind]['index'] = ind
 
-            if(propotion_first_component > threshold):
-                if(len(blocks) < no_of_blocks):
-                    block = {}
-                    block['pca'] = propotion_first_component
-                    block['row'] = i
-                    block['col'] = j
-                    block['index'] = b
-                    blocks.append(block)
+            # if(propotion_first_component > threshold):
+            #     if(len(blocks) < no_of_blocks):
+            #         block = {}
+            #         block['pca'] = propotion_first_component
+            #         block['row'] = i
+            #         block['col'] = j
+            #         block['index'] = b
+            #         blocks.append(block)
 
            # print(pca.singular_values_)
             """if(propotion_first_component > max_pca):
@@ -483,6 +497,7 @@ def pca_analysis(y, block_size, height, width, no_of_blocks):
     # print(max_col)
     # print("The coordinates of image block are: ({},{},{},{})".format(max_row,max_row+msg_size,max_col,max_col+msg_size))
     # return (max_row,max_row+msg_size,max_col,max_col+msg_size)
+    
     return blocks
 
 
@@ -519,7 +534,9 @@ def PCA_Implementation(cap, block_size, frame_list, no_of_blocks):
         # cv2.waitKey(1000)
 
         y, u, v = cv2.split(yuv_img)
-
+        f = open("lib/modules/selection/region.txt","a")
+        f.write("\n FRame number: \n{}".format(frame_no))
+        f.close()
         block = pca_analysis(y, block_size, height, width,
                              no_of_blocks=no_of_blocks)
         # print(block)

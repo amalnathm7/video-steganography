@@ -129,7 +129,7 @@ def embed_data(cap, writer, binary_data):
 
     block_size = math.ceil(math.sqrt(min(width, height)))
 
-    selected_frames = fs.histogram_difference(
+    selected_frames = fs.ssim_based_frame_selection(
         cap=cap, frame_count=no_of_frames)
 
     # TODO
@@ -271,7 +271,7 @@ def main():
 
         if (file_type == 1):
             embed_data(cap=cap, writer=writer,
-                       binary_data=text_to_binary("assets/secret_files/texts/input0.txt"))
+                       binary_data=text_to_binary("assets/secret_files/texts/input4.txt"))
         elif (file_type == 2):
             embed_data(cap=cap, writer=writer,
                        binary_data=image_to_binary('assets/secret_files/images/input1.jpg'))

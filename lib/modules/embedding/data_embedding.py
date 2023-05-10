@@ -127,7 +127,7 @@ def embed_data(cap, writer, binary_data):
         cap=cap, frame_count=no_of_frames)
     
     # selected_frames = []
-    # for i in range(0, total_frames):
+    # for i in range(0, int(total_frames)):
     #     selected_frames.append(i)
 
     # selected_frames.sort()

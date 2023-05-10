@@ -70,6 +70,17 @@ def video_to_binary(file_path):
     return binary_data
 
 
+def to_binary(file_path):
+    print("\nAccessing file " + file_path)
+    file = open(file_path, "rb")
+    data = file.read()
+    encrypted_data, iv, key = encrypt_data(data)
+    data_hex = encrypted_data.hex()
+    data = key.hex() + "$" + iv.hex() + "$" + str(len(data_hex)) + "$" + data_hex
+    binary_data = [format(ord(char), '08b') for char in data]
+    return binary_data
+
+
 def adaptive_lsb332_embedding(binary, region, i, j):
     threshold = 9
     r_binary = int_to_binary(region[i, j, 0])
@@ -266,22 +277,23 @@ def data_embedding():
 
         flag = False
 
-        if (file_type == 1):
-            embed_data(cap=cap, writer=writer,
-                       binary_data=text_to_binary("assets/secret_files/texts/input1.txt"))
-        elif (file_type == 2):
-            embed_data(cap=cap, writer=writer,
-                       binary_data=image_to_binary('assets/secret_files/images/input1.jpg'))
-        elif (file_type == 3):
-            embed_data(cap=cap, writer=writer, binary_data=audio_to_binary(
-                'assets/secret_files/audios/input1.mp3'))
-        elif (file_type == 4):
-            embed_data(cap=cap, writer=writer, binary_data=video_to_binary(
-                'assets/secret_files/videos/input1.mp4'))
-        else:
-            print("Invalid option!")
-            flag = True
+        match file_type:
+            case 1:
+                input_file_path = "assets/secret_files/texts/input1.txt"
+            case 2:
+                input_file_path = "assets/secret_files/images/input1.jpg"
+            case 3:
+                input_file_path = "assets/secret_files/audios/input1.mp3"
+            case 4:
+                input_file_path = "assets/secret_files/videos/input1.mp4"
+            case _:
+                print("Invalid option!")
+                flag = True
+                continue
 
+        binary_data = to_binary(file_path=input_file_path)
+
+        embed_data(cap=cap, writer=writer, binary_data=binary_data)
 
 if __name__ == '__main__':
     data_embedding()

@@ -159,56 +159,25 @@ def extract_data(cap, type):
                                 extracted_len += 1
                             data += ch
                         else:
-                            if (type == 1):
-                                text_bytes = decrypt_data(
-                                    bytes.fromhex(data), iv, key, isText=True)
+                                extracted_data = decrypt_data(bytes.fromhex(data), iv, key)
 
-                                file = open(
-                                    "assets/extracted_files/texts/output.txt", "w")
+                                match type:
+                                    case 1:
+                                        output_file_path = "assets/extracted_files/texts/output.txt"
+                                    case 2:
+                                        output_file_path = "assets/extracted_files/texts/output.jpg"
+                                    case 3:
+                                        output_file_path = "assets/extracted_files/texts/output.mp3"
+                                    case 4:
+                                        output_file_path = "assets/extracted_files/texts/output.mp4"
 
-                                file.write(text_bytes)
+                                file = open(output_file_path, "wb")
 
-                                print(
-                                    "\nOutput file assets/extracted_files/texts/output.txt successfully created\n")
-                                flag = True
-                                break
-                            elif (type == 2):
-                                image_bytes = decrypt_data(
-                                    ciphertext=bytes.fromhex(data), key=key, iv=iv)
-
-                                image = Image.open(io.BytesIO(image_bytes))
-
-                                image.save(
-                                    'assets/extracted_files/images/output.jpg')
+                                file.write(extracted_data)
 
                                 print(
-                                    "\nOutput file assets/extracted_files/images/output.jpg successfully created\n")
-                                flag = True
-                                break
-                            elif (type == 3):
-                                audio_bytes = decrypt_data(
-                                    bytes.fromhex(data), iv, key)
-
-                                file = open(
-                                    "assets/extracted_files/audios/output.mp3", "wb")
-
-                                file.write(audio_bytes)
-
-                                print(
-                                    "\nOutput file assets/extracted_files/audios/output.mp3 successfully created\n")
-                                flag = True
-                                break
-                            elif (type == 4):
-                                video_bytes = decrypt_data(
-                                    bytes.fromhex(data), iv, key)
-
-                                file = open(
-                                    "assets/extracted_files/videos/output.mp4", "wb")
-
-                                file.write(video_bytes)
-
-                                print(
-                                    "\nOutput file assets/extracted_files/videos/output.mp4 successfully created\n")
+                                    f'n{output_file_path} successfully created\n')
+                                
                                 flag = True
                                 break
                     if (flag):

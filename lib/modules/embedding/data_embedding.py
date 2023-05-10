@@ -1,15 +1,14 @@
-import io
 import os
 import sys
 project_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, project_dir)
-import selection.region_selection as rs
-import selection.frame_selection as fs
-from encryption.textenc import encrypt_text
-from encryption.imgenc import encrypt_image_data
-import math
-import cv2
 from PIL import Image
+import cv2
+import math
+from preprocessing.encrypt import encrypt_data
+import selection.frame_selection as fs
+import selection.region_selection as rs
+import io
 
 
 def int_to_binary(n):
@@ -26,9 +25,10 @@ def option(opt):
 
 
 def text_to_binary(file_path):
+    print("\nAccessing file " + file_path)
     file = open(file_path, "r")
     data = file.read()
-    encrypted_data, iv, key = encrypt_text(data)
+    encrypted_data, iv, key = encrypt_data(data, isText=True)
     data_hex = encrypted_data.hex()
     data = key.hex() + "$" + iv.hex() + "$" + str(len(data_hex)) + "$" + data_hex
     binary_data = [format(ord(char), '08b') for char in data]
@@ -36,11 +36,23 @@ def text_to_binary(file_path):
 
 
 def image_to_binary(file_path):
+    print("\nAccessing file " + file_path)
     img = Image.open(file_path)
     bytes_io = io.BytesIO()
     img.save(bytes_io, format=img.format.lower())
     bytes_data = bytes_io.getvalue()
-    encrypted_data, key, iv = encrypt_image_data(bytes_data)
+    encrypted_data, key, iv = encrypt_data(bytes_data)
+    data_hex = encrypted_data.hex()
+    data = key.hex() + "$" + iv.hex() + "$" + str(len(data_hex)) + "$" + data_hex
+    binary_data = [format(ord(char), '08b') for char in data]
+    return binary_data
+
+
+def audio_to_binary(file_path):
+    print("\nAccessing file " + file_path)
+    file = open(file_path, "rb")
+    data = file.read()
+    encrypted_data, iv, key = encrypt_data(data)
     data_hex = encrypted_data.hex()
     data = key.hex() + "$" + iv.hex() + "$" + str(len(data_hex)) + "$" + data_hex
     binary_data = [format(ord(char), '08b') for char in data]
@@ -48,33 +60,14 @@ def image_to_binary(file_path):
 
 
 def video_to_binary(file_path):
-    pass
-    # cap = cv2.VideoCapture(file_path)
-
-    # height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-    # width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-    # video_fps = int(cap.get(cv2.CAP_PROP_FPS))
-    # total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-
-    # data = "{}${}${}${}$".format(width, height, video_fps, total_frames)
-    # binary_data = [format(ord(char), '08b') for char in data]
-
-    # while True:
-    #     ret, frame = cap.read()
-    #     if not ret:
-    #         break
-
-    #     rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-
-    #     for x in range(height):
-    #         for y in range(width):
-    #             r, g, b = rgb_frame[x][y]
-
-    #             binary_data.append(int_to_binary(r))
-    #             binary_data.append(int_to_binary(g))
-    #             binary_data.append(int_to_binary(b))
-
-    # return binary_data
+    print("\nAccessing file " + file_path)
+    file = open(file_path, "rb")
+    data = file.read()
+    encrypted_data, iv, key = encrypt_data(data)
+    data_hex = encrypted_data.hex()
+    data = key.hex() + "$" + iv.hex() + "$" + str(len(data_hex)) + "$" + data_hex
+    binary_data = [format(ord(char), '08b') for char in data]
+    return binary_data
 
 
 def adaptive_lsb332_embedding(binary, region, i, j):
@@ -110,7 +103,6 @@ def embed_data(cap, writer, binary_data):
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     total_frames = cap.get(cv2.CAP_PROP_FRAME_COUNT)
     pixel_count = len(binary_data)
-    index = 0
     flag = False
 
     ret, frame = cap.read()
@@ -129,17 +121,25 @@ def embed_data(cap, writer, binary_data):
 
     block_size = math.ceil(math.sqrt(min(width, height)))
 
+<<<<<<< HEAD
     selected_frames = fs.ssim_based_frame_selection(
+=======
+    print("\nSelecting robust frames")
+
+    selected_frames = fs.histogram_difference(
+>>>>>>> main
         cap=cap, frame_count=no_of_frames)
 
     # TODO
 
-    selected_frames.sort()
-    print(selected_frames)
+    # selected_frames.sort()
+    # print(f'\nSelected frames: {selected_frames}')
+
+    print("\nSelecting robust regions")
 
     cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
 
-    selected_regions = {}
+    # selected_regions = {}
 
     # for i in range(1, 300):
     #     selected_regions[i] = [{'start': (0, 0), 'end': (200, 200)}]
@@ -147,7 +147,7 @@ def embed_data(cap, writer, binary_data):
     selected_regions = rs.PCA_Implementation(
         cap=cap, block_size=block_size, frame_list=selected_frames, no_of_blocks=no_of_blocks)
 
-    # selected_regions = rs.GWO(cap=cap, msg_size=math.ceil(math.sqrt(pixel_count)),
+    # selected_regions = rs.GWO(cap=cap, msg_size=block_size,
     #                         frame_list=selected_frames, no_of_blocks=no_of_blocks)
 
     region = frame[0:height, 0:width]
@@ -156,7 +156,7 @@ def embed_data(cap, writer, binary_data):
 
     for i in range(0, len(selected_frames)):
         selected_frames_string += f'{str(selected_frames[i])},'
-    
+
     init_string = f'{pixel_count}${selected_frames_string}$'
 
     count = 0
@@ -164,14 +164,13 @@ def embed_data(cap, writer, binary_data):
     for i in range(0, height):
         for j in range(0, width):
             init_binary = [format(ord(char), '08b') for char in init_string]
-            adaptive_lsb332_embedding(binary=init_binary[count], region=region, i=i, j=j)
+            adaptive_lsb332_embedding(
+                binary=init_binary[count], region=region, i=i, j=j)
             count += 1
 
             if (count == len(init_binary)):
                 flag = True
                 break
-            
-            index += 1
 
         if (flag):
             break
@@ -226,13 +225,13 @@ def embed_data(cap, writer, binary_data):
     if (count < len(binary_data)):
         print("\nData is large!")
     else:
-        print("\nEmbedded successfully")
+        print("\nEmbedded successfully\n")
 
     writer.release()
     cap.release()
 
 
-def main():
+def data_embedding():
     print("\nVideo Steganography")
 
     flag = True
@@ -264,18 +263,25 @@ def main():
     flag = True
 
     while (flag):
-        print("\n1. Text\n2. Image\n3. Video\n")
+        print("\n1. Text\n2. Image\n3. Audio\n4. Video\n")
         file_type = int(input("Select secret file type: "))
 
         flag = False
 
         if (file_type == 1):
             embed_data(cap=cap, writer=writer,
+<<<<<<< HEAD
                        binary_data=text_to_binary("assets/secret_files/texts/input4.txt"))
+=======
+                       binary_data=text_to_binary("assets/secret_files/texts/input1.txt"))
+>>>>>>> main
         elif (file_type == 2):
             embed_data(cap=cap, writer=writer,
                        binary_data=image_to_binary('assets/secret_files/images/input1.jpg'))
         elif (file_type == 3):
+            embed_data(cap=cap, writer=writer, binary_data=audio_to_binary(
+                'assets/secret_files/audios/input1.mp3'))
+        elif (file_type == 4):
             embed_data(cap=cap, writer=writer, binary_data=video_to_binary(
                 'assets/secret_files/videos/input1.mp4'))
         else:
@@ -284,4 +290,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    data_embedding()

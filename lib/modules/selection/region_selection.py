@@ -1,13 +1,10 @@
 # Code to implement region selection with grey wolf optimisation and PCA analysis
 
 import cv2
-import pywt
 import numpy as np
 from sklearn.decomposition import PCA
-from PIL import Image
 import random
 import math
-import matplotlib.pyplot as plt
 from scipy.stats import kurtosis
 from scipy.stats import entropy
 
@@ -112,7 +109,7 @@ def Get_Robust_Regions(frame, height, width, msg_size):
 
     r = 0
     a = 2
-    iterations = 10
+    iterations = 20
 
     """Setting up the grids and finding their fitness functions"""
     for i in range(0, int(height)):
@@ -298,13 +295,111 @@ def Find_Index_Min(block, value):
                 ind = b['index']
     return ind
 
+def Find_Threshold(y,block_size,height,width,no_of_blocks):
+    #threshold = 9.5
+    #max_difference = 0.2
+    summ = 0
+    count = 0
+    #while(1):
+    for i in range(0, int(height), block_size):
+        for j in range(0, int(width), block_size):
+            if((i + block_size >= height) or (j + block_size >= width)):
+                track = 1
+                break
 
+            r = y[i:i+block_size, j:j+block_size]
+            greater_sum = 0
+            greater_count = 0
+            lesser_count = 0
+            lesser_sum = 0
+
+            # NOTE: For storing the data instead of taking nXn matrix take 1xn matrix and check
+            # NOTE: For storing the data take ceil(root(n))xceil(root(n)) size of block to fill the entire block
+
+            # cv2.imshow('t',r)
+            # cv2.waitKey(1000)
+            """Applying PCA to find the first principal component"""
+            np.seterr(invalid='ignore')
+            pca = PCA(n_components=1, svd_solver='full')
+            # print(pca)
+            # npdata =  np.asarray(r)
+            X = np.array(r)
+            pca.fit(X)
+            first_component = pca.singular_values_
+            first_component_sq = first_component**2
+
+            """ Applying PCA to find the remaining principal components"""
+            pca = PCA(svd_solver='full')
+            Y = np.array(r)
+            pca.fit(Y)
+            next_components = pca.singular_values_
+            # print(next_components)
+            summation = Find_Summation(next_components)
+
+            """Finding the propotion of the first principal component of the image"""
+            if (summation != 0):
+                propotion_first_component = first_component_sq/summation
+            else:
+                propotion_first_component = -1
+
+            #METHOD 1
+            """if (len(blocks) < no_of_blocks):
+                block = {}
+                block['pca'] = propotion_first_component
+                block['row'] = i
+                block['col'] = j
+                block['index'] = b
+                blocks.append(block)
+                b += 1
+            else:
+                # print("Changed")
+                # print(blocks)
+                ind = Find_Index_Min(blocks, propotion_first_component)
+                if (ind != -1):
+                    blocks[ind]['pca'] = propotion_first_component
+                    blocks[ind]['row'] = i
+                    blocks[ind]['col'] = j
+                    blocks[ind]['index'] = ind"""
+            #print("H"+str(threshold))
+            """if(propotion_first_component >= threshold):
+                greater_sum = greater_sum+propotion_first_component
+                greater_count = greater_count+1
+            else:
+                lesser_sum = lesser_sum+propotion_first_component
+                lesser_count = lesser_count+1"""
+            summ =  summ+propotion_first_component
+            count = count+1
+        """if((greater_count == 0)and(lesser_count == 0)):
+            avg_threshold = 5
+        elif (greater_count == 0):
+            lesser_mean = lesser_sum/lesser_count
+            avg_threshold = lesser_mean
+        elif (lesser_count == 0):
+            greater_mean = greater_sum/greater_count
+            avg_threshold = greater_mean
+        else:
+            greater_mean = greater_sum/greater_count
+            lesser_mean = lesser_sum/lesser_count
+            avg_threshold = greater_mean+lesser_mean/2"""
+    threshold = summ/count
+    
+    """print("Current threshold = {} and new threshold = {} diff= {}".format(threshold,avg_threshold,abs(threshold-avg_threshold)))
+        if(abs(threshold - avg_threshold) <= max_difference):
+            threshold = avg_threshold
+            break
+        else:
+            print("Here")
+            threshold = avg_threshold
+            print("Now threshold is: "+str(threshold))"""
+    return threshold
 def pca_analysis(y, block_size, height, width, no_of_blocks):
 
     # if multiple blocks to be selected
     blocks = []
     b = 0
-    threshold = 0.75
+
+    threshold = Find_Threshold(y,block_size,height,width,no_of_blocks)
+    # print("The threshold is"+str(threshold))
 
     max_pca = 0
     max_row, max_col = 0, 0

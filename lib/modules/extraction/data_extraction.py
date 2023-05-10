@@ -2,10 +2,8 @@ import sys
 import os
 project_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, project_dir)
-import selection.frame_selection as fs
 import selection.region_selection as rs
-from decryption.imgdec import decrypt_image_data
-from decryption.textdec import decrypt_text
+from preprocessing.decrypt import decrypt_data
 from PIL import Image
 import math
 import cv2
@@ -60,6 +58,8 @@ def extract_data(cap, type):
 
     region = frame[0:height, 0:width]
 
+    print("\nIdentifying selected frames")
+
     for i in range(0, height):
         for j in range(0, width):
             num = adaptive_lsb332_extraction(region=region, i=i, j=j)
@@ -93,8 +93,10 @@ def extract_data(cap, type):
 
     block_size = math.ceil(math.sqrt(min(width, height)))
 
-    selected_frames.sort()
-    print(selected_frames)
+    # selected_frames.sort()
+    # print(f'\nSelected frames: {selected_frames}')
+
+    print("\nIdentifying selected regions")
 
     cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
 
@@ -158,8 +160,8 @@ def extract_data(cap, type):
                             data += ch
                         else:
                             if (type == 1):
-                                text_bytes = decrypt_text(
-                                    bytes.fromhex(data), iv, key)
+                                text_bytes = decrypt_data(
+                                    bytes.fromhex(data), iv, key, isText=True)
 
                                 file = open(
                                     "assets/extracted_files/texts/output.txt", "w")
@@ -167,11 +169,11 @@ def extract_data(cap, type):
                                 file.write(text_bytes)
 
                                 print(
-                                    "Output file at assets/extracted_files/texts/output.txt successfully created")
+                                    "\nOutput file assets/extracted_files/texts/output.txt successfully created\n")
                                 flag = True
                                 break
                             elif (type == 2):
-                                image_bytes = decrypt_image_data(
+                                image_bytes = decrypt_data(
                                     ciphertext=bytes.fromhex(data), key=key, iv=iv)
 
                                 image = Image.open(io.BytesIO(image_bytes))
@@ -180,11 +182,35 @@ def extract_data(cap, type):
                                     'assets/extracted_files/images/output.jpg')
 
                                 print(
-                                    "Output file at assets/extracted_files/images/output.jpg successfully created")
+                                    "\nOutput file assets/extracted_files/images/output.jpg successfully created\n")
                                 flag = True
                                 break
                             elif (type == 3):
-                                pass
+                                audio_bytes = decrypt_data(
+                                    bytes.fromhex(data), iv, key)
+
+                                file = open(
+                                    "assets/extracted_files/audios/output.mp3", "wb")
+
+                                file.write(audio_bytes)
+
+                                print(
+                                    "\nOutput file assets/extracted_files/audios/output.mp3 successfully created\n")
+                                flag = True
+                                break
+                            elif (type == 4):
+                                video_bytes = decrypt_data(
+                                    bytes.fromhex(data), iv, key)
+
+                                file = open(
+                                    "assets/extracted_files/videos/output.mp4", "wb")
+
+                                file.write(video_bytes)
+
+                                print(
+                                    "\nOutput file assets/extracted_files/videos/output.mp4 successfully created\n")
+                                flag = True
+                                break
                     if (flag):
                         break
 
@@ -203,7 +229,7 @@ def create_folder(folder_path):
         os.makedirs(folder_path)
 
 
-def main():
+def data_extraction():
     print("\nVideo Steganography")
 
     flag = False
@@ -218,7 +244,7 @@ def main():
     flag = True
 
     while (flag):
-        print("\n1. Text\n2. Image\n3. Video\n")
+        print("\n1. Text\n2. Image\n3. Audio\n4. Video\n")
         file_type = int(input("Select secret file type: "))
 
         match (file_type):
@@ -227,11 +253,13 @@ def main():
             case 2:
                 create_folder("assets/extracted_files/images")
             case 3:
+                create_folder("assets/extracted_files/audios")
+            case 4:
                 create_folder("assets/extracted_files/videos")
 
         flag = False
 
-        if file_type in [1, 2, 3]:
+        if file_type in [1, 2, 3, 4]:
             extract_data(cap=cap, type=file_type)
         else:
             print("Invalid option!")
@@ -239,4 +267,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    data_extraction()

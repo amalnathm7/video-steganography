@@ -295,6 +295,15 @@ def Find_Index_Min(block, value):
                 ind = b['index']
     return ind
 
+def Find_Min_PCA(blocks):
+    minpca = 1000000
+    ind = -1
+    for b in blocks:
+        if(b['pca'] < minpca):
+            minpca = b['pca']
+    return minpca
+
+
 def Find_Threshold(y,block_size,height,width,no_of_blocks):
     #threshold = 9.5
     #max_difference = 0.2
@@ -408,20 +417,21 @@ def pca_analysis(y, block_size, height, width, no_of_blocks):
     blocks = []
     b = 0
 
-    threshold = Find_Threshold(y,block_size,height,width,no_of_blocks)
+    #threshold = Find_Threshold(y,block_size,height,width,no_of_blocks)
     # print("The threshold is"+str(threshold))
-    f = open("lib/modules/selection/region.txt","a")
-    f.write("\n THreshold selected: \n{}".format(threshold))
-    f.close()
+    # f = open("lib/modules/selection/region.txt","a")
+    # f.write("\n THreshold selected: \n{}".format(threshold))
+    # f.close()
 
     max_pca = 0
+    min_pca = 1000000
     max_row, max_col = 0, 0
     track = 0
 
     # Dividing the image into blocks and finding the PCA of each block
     for i in range(0, int(height), block_size):
         for j in range(0, int(width), block_size):
-            if((i + block_size >= height) or (j + block_size >= width)):
+            if((i + block_size >= height) and (j + block_size >= width)):
                 track = 1
                 break
 
@@ -465,15 +475,19 @@ def pca_analysis(y, block_size, height, width, no_of_blocks):
                 block['index'] = b
                 blocks.append(block)
                 b += 1
+                if(propotion_first_component < min_pca):
+                    min_pca = propotion_first_component
             else:
+                if(propotion_first_component > min_pca):
                 # print("Changed")
                 # print(blocks)
-                ind = Find_Index_Min(blocks, propotion_first_component)
-                if (ind != -1):
-                    blocks[ind]['pca'] = propotion_first_component
-                    blocks[ind]['row'] = i
-                    blocks[ind]['col'] = j
-                    blocks[ind]['index'] = ind
+                    ind = Find_Index_Min(blocks, propotion_first_component)
+                    if (ind != -1):
+                        blocks[ind]['pca'] = propotion_first_component
+                        blocks[ind]['row'] = i
+                        blocks[ind]['col'] = j
+                        blocks[ind]['index'] = ind
+                        min_pca = Find_Min_PCA(blocks)
 
             # if(propotion_first_component > threshold):
             #     if(len(blocks) < no_of_blocks):

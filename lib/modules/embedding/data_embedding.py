@@ -78,18 +78,21 @@ def embed_data(cap, writer, binary_data):
     block_size = math.floor(math.sqrt(min(width, height)))
     no_of_frames = math.ceil(pixel_count / (block_size * block_size * no_of_blocks))
 
-    while no_of_frames > total_frames:
+    while no_of_frames > (total_frames - 1):
         no_of_blocks += 1
         no_of_frames = math.ceil(pixel_count / (block_size * block_size * no_of_blocks))
 
     print("\nSelecting robust frames")
-
-    selected_frames = fs.histogram_difference(
-        cap=cap, frame_count=no_of_frames)
     
     # selected_frames = []
-    # for i in range(0, int(total_frames)):
+    # for i in range(1, int(total_frames)):
     #     selected_frames.append(i)
+    
+    selected_frames = fs.histogram_difference(
+        cap=cap, frame_count=no_of_frames)
+
+    # selected_frames = fs.ssim_based_frame_selection(
+    #     cap=cap, frame_count=no_of_frames)
 
     # selected_frames.sort()
     # print(f'\nSelected frames: {selected_frames}')
@@ -100,11 +103,13 @@ def embed_data(cap, writer, binary_data):
 
     # selected_regions = {}
 
-    # for i in range(1, 300):
-    #     selected_regions[i] = [{'start': (0, 0), 'end': (200, 200)}]
+    # for i in range(1, int(total_frames)):
+    #     selected_regions[i] = [{'start': (0, 0), 'end': (int(width) - 1, int(height) - 1)}]
 
     selected_regions = rs.PCA_Implementation(
         cap=cap, block_size=block_size, frame_list=selected_frames, no_of_blocks=no_of_blocks)
+    
+    print(selected_regions)
 
     # selected_regions = rs.GWO(cap=cap, msg_size=block_size,
     #                         frame_list=selected_frames, no_of_blocks=no_of_blocks)
@@ -152,13 +157,9 @@ def embed_data(cap, writer, binary_data):
         if flag:
             writer.write(frame)
             continue
-
+        
         if frame_no in selected_frames:
-            index = 0
-
             for element in selected_regions[frame_no]:
-                index += 1
-                
                 region = frame[element['start'][0]:element['end']
                                [0] + 1, element['start'][1]:element['end'][1] + 1]
                 region_height = element['end'][0] + 1 - element['start'][0]
@@ -182,13 +183,10 @@ def embed_data(cap, writer, binary_data):
                 if (flag):
                     break
 
-            print(index)
-            print(no_of_blocks)
-
         writer.write(frame)
         frame_no = frame_no + 1
 
-    if (count < len(binary_data)):
+    if (count < pixel_count):
         print("\nData is large!")
     else:
         print("\nEmbedded successfully\n")
@@ -236,7 +234,7 @@ def data_embedding():
 
         match file_type:
             case 1:
-                input_file_path = "assets/secret_files/texts/input6.txt"
+                input_file_path = "assets/secret_files/texts/input0.txt"
             case 2:
                 input_file_path = "assets/secret_files/images/input1.jpg"
             case 3:

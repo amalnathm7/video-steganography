@@ -100,11 +100,13 @@ def extract_data(cap, type):
 
     # selected_regions = {}
 
-    # for i in range(1, 300):
-    #     selected_regions[i] = [{'start': (0, 0), 'end': (200, 200)}]
+    # for i in range(1, int(total_frames)):
+    #     selected_regions[i] = [{'start': (0, 0), 'end': (int(width) - 1, int(height) - 1)}]
 
     selected_regions = rs.PCA_Implementation(
         cap=cap, block_size=block_size, frame_list=selected_frames, no_of_blocks=no_of_blocks)
+    
+    print(selected_regions)
 
     # selected_regions = rs.GWO(cap=cap, msg_size=math.ceil(math.sqrt(pixel_count)),
     #                         frame_list=selected_frames, no_of_blocks=no_of_blocks)
@@ -140,7 +142,7 @@ def extract_data(cap, type):
                     for j in range(0, region_width):
                         ch = chr(adaptive_lsb332_extraction(
                             region=region, i=i, j=j))
-
+                        
                         if (extracted_len == -1 and ch == '$'):
                             if (key == None):
                                 key = bytes.fromhex(data)

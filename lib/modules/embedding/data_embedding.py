@@ -7,6 +7,11 @@ import math
 from preprocessing.encrypt import encrypt_data
 import selection.frame_selection as fs
 import selection.region_selection as rs
+import pickle
+import random
+
+
+INIT_DATA_THRESHOLD = 0.15
 
 
 def int_to_binary(n):
@@ -22,15 +27,25 @@ def option(opt):
         case 5: return "crew"
 
 
-def to_binary(file_path):
+def file_to_binary(file_path):
     print("\nAccessing file " + file_path)
     file = open(file_path, "rb")
     data = file.read()
+    return data_to_binary(data=data)
+
+
+def data_to_binary(data):
     encrypted_data, iv, key = encrypt_data(data)
     data_hex = encrypted_data.hex()
     data = key.hex() + "$" + iv.hex() + "$" + str(len(data_hex)) + "$" + data_hex
     binary_data = [format(ord(char), '08b') for char in data]
     return binary_data
+
+
+def get_init_frames(total_frames, count):
+    list = [i for i in range(0, total_frames)]
+    random.seed(len(list))
+    return random.sample(list, count)
 
 
 def adaptive_lsb332_embedding(binary, region, i, j):
@@ -66,131 +81,136 @@ def embed_data(cap, writer, binary_data):
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     total_frames = cap.get(cv2.CAP_PROP_FRAME_COUNT)
     pixel_count = len(binary_data)
-    flag = False
+    is_embedded = False
 
-    ret, frame = cap.read()
-    if not ret:
+    if total_frames == 0:
         print("No frames in cover video!")
         return
+
+    init_frames_count = 0
+
+    while ((width * height * init_frames_count) < (pixel_count * INIT_DATA_THRESHOLD)):
+        init_frames_count += 1
+
+    init_frames = get_init_frames(total_frames=int(total_frames), count=init_frames_count)
 
     no_of_blocks = 1
 
     block_size = math.floor(math.sqrt(min(width, height)))
     no_of_frames = math.ceil(pixel_count / (block_size * block_size * no_of_blocks))
 
-    while no_of_frames > (total_frames - 1):
+    while no_of_frames > (total_frames - init_frames_count):
         no_of_blocks += 1
         no_of_frames = math.ceil(pixel_count / (block_size * block_size * no_of_blocks))
 
     print("\nSelecting robust frames")
-    
+
     # selected_frames = []
     # for i in range(1, int(total_frames)):
     #     selected_frames.append(i)
     
-    selected_frames = fs.histogram_difference(
-        cap=cap, frame_count=no_of_frames)
+    cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
 
-    # selected_frames = fs.ssim_based_frame_selection(
-    #     cap=cap, frame_count=no_of_frames)
+    selected_frames = fs.histogram_difference(cap=cap, frame_count=no_of_frames, init_frames=init_frames)
+
+    # selected_frames = fs.ssim_based_frame_selection(cap=cap, frame_count=no_of_frames, init_frames=init_frames)
 
     # selected_frames.sort()
     # print(f'\nSelected frames: {selected_frames}')
 
     print("\nSelecting robust regions")
 
-    cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
-
     # selected_regions = {}
 
     # for i in range(1, int(total_frames)):
     #     selected_regions[i] = [{'start': (0, 0), 'end': (int(width) - 1, int(height) - 1)}]
 
+    cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
+
     selected_regions = rs.PCA_Implementation(
         cap=cap, block_size=block_size, frame_list=selected_frames, no_of_blocks=no_of_blocks)
-    
-    print(selected_regions)
 
     # selected_regions = rs.GWO(cap=cap, msg_size=block_size,
     #                         frame_list=selected_frames, no_of_blocks=no_of_blocks)
 
-    region = frame[0:height, 0:width]
+    # print(f'\nSelected regions: {selected_regions}')
 
-    selected_frames_string = ""
+    init_data = {}
+    for frame in selected_regions:
+        data = []
 
-    for i in range(0, len(selected_frames)):
-        selected_frames_string += f'{str(selected_frames[i])},'
+        for region in selected_regions[frame]:
+            data.append(region['start'])
 
-    init_string = f'{pixel_count}${selected_frames_string}$'
+        init_data[frame] = data
 
+    init_binary_data = data_to_binary(data=pickle.dumps(init_data))
+    init_pixel_count = len(init_binary_data)
+
+    frame_no = 0
+    init_count = 0
     count = 0
+    is_init_embedded = False
+    is_embedded = False
 
-    for i in range(0, height):
-        for j in range(0, width):
-            init_binary = [format(ord(char), '08b') for char in init_string]
-            adaptive_lsb332_embedding(
-                binary=init_binary[count], region=region, i=i, j=j)
-            count += 1
-
-            if (count == len(init_binary)):
-                flag = True
-                break
-
-        if (flag):
-            break
-
-    if (count != len(init_binary)):
-        print("Data is large!")
-
-    writer.write(frame)
-
-    cap.set(cv2.CAP_PROP_POS_FRAMES, 1)  # Skipping the first frame
-    frame_no = 1
-    count = 0
-    flag = False
+    cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
 
     while True:
         ret, frame = cap.read()
         if not ret:
             break
 
-        if flag:
-            writer.write(frame)
-            continue
-        
-        if frame_no in selected_frames:
-            for element in selected_regions[frame_no]:
-                region = frame[element['start'][0]:element['end']
-                               [0] + 1, element['start'][1]:element['end'][1] + 1]
-                region_height = element['end'][0] + 1 - element['start'][0]
-                region_width = element['end'][1] + 1 - element['start'][1]
+        if frame_no in init_frames:
+            if (not is_init_embedded):
+                for i in range(0, height):
+                    for j in range(0, width):
+                        binary = init_binary_data[init_count]
+                        init_count += 1
 
-                for i in range(0, region_height):
-                    for j in range(0, region_width):
-                        binary = binary_data[count]
-                        count += 1
+                        adaptive_lsb332_embedding(binary=binary, region=frame, i=i, j=j)
 
-                        adaptive_lsb332_embedding(
-                            binary=binary, region=region, i=i, j=j)
-
-                        if (count == len(binary_data)):
-                            flag = True
+                        if (init_count == init_pixel_count):
+                            is_init_embedded = True
                             break
 
-                    if (flag):
+                    if is_init_embedded:
                         break
+        elif frame_no in selected_frames:
+            if (not is_embedded):
+                for element in selected_regions[frame_no]:
+                    region = frame[element['start'][0]:element['end']
+                                [0] + 1, element['start'][1]:element['end'][1] + 1]
+                    region_height = element['end'][0] + 1 - element['start'][0]
+                    region_width = element['end'][1] + 1 - element['start'][1]
 
-                if (flag):
-                    break
+                    for i in range(0, region_height):
+                        for j in range(0, region_width):
+                            binary = binary_data[count]
+                            count += 1
 
+                            adaptive_lsb332_embedding(
+                                binary=binary, region=region, i=i, j=j)
+
+                            if (count == pixel_count):
+                                is_embedded = True
+                                break
+
+                        if is_embedded:
+                            break
+
+                    if is_embedded:
+                        break
+        
         writer.write(frame)
-        frame_no = frame_no + 1
+        frame_no += 1
 
-    if (count < pixel_count):
-        print("\nData is large!")
+    writer.write(frame)
+
+    if (init_count < init_pixel_count or count < pixel_count):
+        print("\nData is large!\n")
     else:
-        print("\nEmbedded successfully\n")
-
+        print(f"\nEmbedded successfully\n\nYour secret code is {pixel_count}\n")
+    
     writer.release()
     cap.release()
 
@@ -246,7 +266,7 @@ def data_embedding():
                 flag = True
                 continue
 
-        binary_data = to_binary(file_path=input_file_path)
+        binary_data = file_to_binary(file_path=input_file_path)
 
         embed_data(cap=cap, writer=writer, binary_data=binary_data)
 

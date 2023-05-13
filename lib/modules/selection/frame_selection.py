@@ -19,12 +19,11 @@ def get_k_largest(test_list, k):
     return sorted(range(len(test_list)), key=lambda sub: test_list[sub])[-k:]
 
 
-def histogram_difference(cap, frame_count):
+def histogram_difference(cap, frame_count, init_frames):
     key_frames = []
     hist_list = []
     prev_hist = None
-
-    cap.set(cv2.CAP_PROP_POS_FRAMES, 1)  # Skipping the first frame
+    index = 0
 
     while True:
         ret, frame = cap.read()
@@ -41,27 +40,34 @@ def histogram_difference(cap, frame_count):
         # hist = cv2.normalize(hist, hist).flatten()
 
         if prev_hist is None:
-            hist_list.append(-1)
+            hist_list.append(0)
             prev_hist = hist
+            index += 1
             continue
 
-        hist_list.append(cv2.compareHist(
-            prev_hist, hist, cv2.HISTCMP_CHISQR_ALT))
+        if (index in init_frames):
+            hist_list.append(-1)
+        else:
+            hist_list.append(cv2.compareHist(prev_hist, hist, cv2.HISTCMP_CHISQR_ALT))
+        
         prev_hist = hist
 
+        index += 1
+
     key_frames = get_k_largest(hist_list, frame_count)
-    key_frames = [x + 1 for x in key_frames]
+    key_frames = [x for x in key_frames]
 
     return key_frames
 
 
-def ssim_based_frame_selection(cap, frame_count):
-    cap.set(cv2.CAP_PROP_POS_FRAMES, 1)  # Skipping the first frame
-
+def ssim_based_frame_selection(cap, frame_count, init_frames):
     ssim_list = []
     index = 1
     ret1, frame1 = cap.read()
-    ssim_list.append(-1)
+    ssim_list.append(0)
+
+    if(0 in init_frames):
+        print(f"Init frame 0")
     
     if ret1:
         while True:
@@ -70,15 +76,18 @@ def ssim_based_frame_selection(cap, frame_count):
             if not ret2:
                 break
 
-            ssim_val1 = ssim(frame1, frame2)[0]
-            ssim_list.append(ssim_val1)
+            if (index in init_frames):
+                ssim_list.append(-1)
+                print(f"Init frame {index}")
+            else:
+                ssim_val1 = ssim(frame1, frame2)[0]
+                ssim_list.append(ssim_val1)
+                print(f"SSIM({index}): {ssim_val1}")
 
-            print(f"SSIM({index}, {index + 1}): {ssim_val1}")
-
-            index = index + 1
+            index += 1
             frame1 = frame2
 
     key_frames = get_k_largest(ssim_list, frame_count)
-    key_frames = [x + 1 for x in key_frames]
+    key_frames = [x for x in key_frames]
 
     return key_frames

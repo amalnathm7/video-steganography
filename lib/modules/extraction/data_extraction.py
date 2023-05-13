@@ -6,6 +6,11 @@ import selection.region_selection as rs
 from preprocessing.decrypt import decrypt_data
 import math
 import cv2
+import pickle
+import random
+
+
+INIT_DATA_THRESHOLD = 0.15
 
 
 def option(opt):
@@ -23,6 +28,12 @@ def decimal_to_binary(n, fill):
 
 def binary_to_decimal(n):
     return int(n, 2)
+
+
+def get_init_frames(total_frames, count):
+    list = [i for i in range(0, total_frames)]
+    random.seed(len(list))
+    return random.sample(list, count)
 
 
 def adaptive_lsb332_extraction(region, i, j):
@@ -44,92 +55,92 @@ def extract_data(cap, type):
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     total_frames = cap.get(cv2.CAP_PROP_FRAME_COUNT)
-    data = ""
-    flag = False
-    pixel_count = 0
     selected_frames = []
-
-    ret, frame = cap.read()
-    if not ret:
-        print("No frames in stego video!")
-        return
-
-    region = frame[0:height, 0:width]
-
-    print("\nIdentifying selected frames")
-
-    for i in range(0, height):
-        for j in range(0, width):
-            num = adaptive_lsb332_extraction(region=region, i=i, j=j)
-
-            if (chr(num) == '$'):
-                if (pixel_count == 0):
-                    pixel_count = int(data)
-                    data = ""
-                else:
-                    flag = True
-                    break
-            elif (chr(num) == ','):
-                selected_frames.append(int(data))
-                data = ""
-            else:
-                data += chr(num)
-
-        if (flag):
-            break
-
-    cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
-
-    no_of_blocks = 1
-
-    no_of_frames = math.ceil(pixel_count / (min(width, height) * no_of_blocks))
-
-    while no_of_frames > total_frames:
-        no_of_blocks += 1
-        no_of_frames = math.ceil(pixel_count / (math.ceil(math.sqrt(min(width, height)))
-                                 * math.ceil(math.sqrt(min(width, height))) * no_of_blocks))
-
-    block_size = math.ceil(math.sqrt(min(width, height)))
-
-    # selected_frames.sort()
-    # print(f'\nSelected frames: {selected_frames}')
-
-    print("\nIdentifying selected regions")
-
-    cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
-
-    # selected_regions = {}
-
-    # for i in range(1, int(total_frames)):
-    #     selected_regions[i] = [{'start': (0, 0), 'end': (int(width) - 1, int(height) - 1)}]
-
-    selected_regions = rs.PCA_Implementation(
-        cap=cap, block_size=block_size, frame_list=selected_frames, no_of_blocks=no_of_blocks)
-    
-    print(selected_regions)
-
-    # selected_regions = rs.GWO(cap=cap, msg_size=math.ceil(math.sqrt(pixel_count)),
-    #                         frame_list=selected_frames, no_of_blocks=no_of_blocks)
-
-    cap.set(cv2.CAP_PROP_POS_FRAMES, 1)  # Skipping first frame
-
+    selected_regions = {}
+    extracted_len = -1
+    total_len = 0
     data = ""
     flag = False
-    frame_no = 0
-    total_len = 0
-    extracted_len = -1
-    height = -1
-    width = -1
-    total_frames = -1
+    data = ""
     key = None
     iv = None
+    frame_no = 0
+
+    pixel_count = int(input("\nEnter secret code: "))
+    init_frames_count = 0
+
+    while ((width * height * init_frames_count) < (pixel_count * INIT_DATA_THRESHOLD)):
+        init_frames_count += 1
+
+    init_frames = get_init_frames(total_frames=int(total_frames), count=init_frames_count)
+    block_size = math.floor(math.sqrt(min(width, height)))
 
     while True:
         ret, frame = cap.read()
         if not ret:
             break
 
-        frame_no = frame_no + 1
+        if (frame_no in init_frames):
+            for i in range(0, height):
+                for j in range(0, width):
+                    ch = chr(adaptive_lsb332_extraction(region=frame, i=i, j=j))
+
+                    if (extracted_len == -1 and ch == '$'):
+                        if (key == None):
+                            key = bytes.fromhex(data)
+                            data = ""
+                        elif (iv == None):
+                            iv = bytes.fromhex(data)
+                            data = ""
+                        else:
+                            total_len = int(data)
+                            data = ""
+                            extracted_len = 0
+                    elif extracted_len < total_len:
+                        if (extracted_len != -1):
+                            extracted_len += 1
+                        data += ch
+                    else:
+                            extracted_data = decrypt_data(bytes.fromhex(data), iv, key)
+
+                            init_data = pickle.loads(extracted_data)
+
+                            print("\nIdentifying selected frames")
+
+                            print("\nIdentifying selected regions")
+
+                            for frame in init_data:
+                                selected_frames.append(frame)
+                                selected_regions[frame] = []
+
+                                for region in init_data[frame]:
+                                    selected_regions[frame].append({'start': region, 'end': (region[0] + block_size - 1, region[1] + block_size - 1)})
+
+                            flag = True
+                            break
+
+                if (flag):
+                    break
+
+        frame_no += 1
+        
+        if (flag):
+            break
+
+    data = ""
+    total_len = 0
+    extracted_len = -1
+    key = None
+    iv = None
+    flag = False
+    frame_no = 0
+
+    cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
+    
+    while True:
+        ret, frame = cap.read()
+        if not ret:
+            break
 
         if frame_no in selected_frames:
             for element in selected_regions[frame_no]:
@@ -142,7 +153,7 @@ def extract_data(cap, type):
                     for j in range(0, region_width):
                         ch = chr(adaptive_lsb332_extraction(
                             region=region, i=i, j=j))
-                        
+
                         if (extracted_len == -1 and ch == '$'):
                             if (key == None):
                                 key = bytes.fromhex(data)
@@ -176,7 +187,7 @@ def extract_data(cap, type):
                                 file.write(extracted_data)
 
                                 print(
-                                    f'n{output_file_path} successfully created\n')
+                                    f'\n{output_file_path} successfully created\n')
                                 
                                 flag = True
                                 break
@@ -188,6 +199,8 @@ def extract_data(cap, type):
 
             if (flag):
                 break
+
+        frame_no += 1
 
     cap.release()
     cv2.destroyAllWindows()
@@ -210,6 +223,7 @@ def data_extraction():
 
     filename = option(opt)
     cap = cv2.VideoCapture(f'assets/stego_videos/{filename}_stego.avi')
+    print(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     flag = True
 
     while (flag):

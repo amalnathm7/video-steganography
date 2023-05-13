@@ -2,7 +2,6 @@ import sys
 import os
 project_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, project_dir)
-import selection.region_selection as rs
 from preprocessing.decrypt import decrypt_data
 import math
 import cv2
@@ -10,7 +9,7 @@ import pickle
 import random
 
 
-INIT_DATA_THRESHOLD = 0.15
+INIT_DATA_THRESHOLD = 0.1
 
 
 def option(opt):

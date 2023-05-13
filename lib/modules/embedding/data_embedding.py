@@ -11,7 +11,7 @@ import pickle
 import random
 
 
-INIT_DATA_THRESHOLD = 0.15
+INIT_DATA_THRESHOLD = 0.1
 
 
 def int_to_binary(n):
@@ -102,6 +102,10 @@ def embed_data(cap, writer, binary_data):
     while no_of_frames > (total_frames - init_frames_count):
         no_of_blocks += 1
         no_of_frames = math.ceil(pixel_count / (block_size * block_size * no_of_blocks))
+
+    if(block_size * block_size * no_of_blocks > width * height):
+        print("\nData is large!\n")
+        return
 
     print("\nSelecting robust frames")
 
@@ -207,12 +211,9 @@ def embed_data(cap, writer, binary_data):
     writer.write(frame)
 
     if (init_count < init_pixel_count or count < pixel_count):
-        print("\nData is large!\n")
+        print("\nEmbedding error!\n")
     else:
         print(f"\nEmbedded successfully\n\nYour secret code is {pixel_count}\n")
-    
-    writer.release()
-    cap.release()
 
 
 def data_embedding():
@@ -254,7 +255,7 @@ def data_embedding():
 
         match file_type:
             case 1:
-                input_file_path = "assets/secret_files/texts/input0.txt"
+                input_file_path = "assets/secret_files/texts/input1.txt"
             case 2:
                 input_file_path = "assets/secret_files/images/input1.jpg"
             case 3:
@@ -269,6 +270,9 @@ def data_embedding():
         binary_data = file_to_binary(file_path=input_file_path)
 
         embed_data(cap=cap, writer=writer, binary_data=binary_data)
+    
+    writer.release()
+    cap.release()
 
 if __name__ == '__main__':
     data_embedding()

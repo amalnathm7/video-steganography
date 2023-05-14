@@ -411,8 +411,12 @@ def Find_Threshold(y,block_size,height,width,no_of_blocks):
     #         threshold = avg_threshold
     #         print("Now threshold is: "+str(threshold))
     return threshold
-def pca_analysis(y, block_size, height, width, no_of_blocks):
 
+
+def pca_analysis(y, block_size, height, width, no_of_blocks, frame_no):
+    row_start = 0
+    if(frame_no == 0):
+        row_start = 1
     # if multiple blocks to be selected
     blocks = []
     b = 0
@@ -430,7 +434,7 @@ def pca_analysis(y, block_size, height, width, no_of_blocks):
 
     # Dividing the image into blocks and finding the PCA of each block
     for i in range(0, int(height), block_size):
-        for j in range(0, int(width), block_size):
+        for j in range(row_start, int(width), block_size):
             if((i + block_size >= height) and (j + block_size >= width)):
                 track = 1
                 break
@@ -548,11 +552,11 @@ def PCA_Implementation(cap, block_size, frame_list, no_of_blocks):
         # cv2.waitKey(1000)
 
         y, u, v = cv2.split(yuv_img)
-        f = open("lib/modules/selection/region.txt","a")
-        f.write("\n FRame number: \n{}".format(frame_no))
-        f.close()
+        # f = open("lib/modules/selection/region.txt","a")
+        # f.write("\n FRame number: \n{}".format(frame_no))
+        # f.close()
         block = pca_analysis(y, block_size, height, width,
-                             no_of_blocks=no_of_blocks)
+                             no_of_blocks=no_of_blocks,frame_no= frame_no )
         # print(block)
         l = Get_Regions(block, block_size)
         robust_regions[frame_no] = l

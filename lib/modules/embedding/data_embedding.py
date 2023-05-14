@@ -119,9 +119,9 @@ def embed_data(cap, writer, binary_data):
     
     cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
 
-    selected_frames = fs.histogram_difference(cap=cap, frame_count=no_of_frames, init_frames=init_frames)
+    selected_frames = fs.histogram_difference_frame_selection(cap=cap, frame_count=no_of_frames, init_frames=init_frames)
 
-    # selected_frames = fs.ssim_based_frame_selection(cap=cap, frame_count=no_of_frames, init_frames=init_frames)
+    # selected_frames = fs.ssim_frame_selection(cap=cap, frame_count=no_of_frames, init_frames=init_frames)
 
     # selected_frames.sort()
     # print(f'\nSelected frames: {selected_frames}')

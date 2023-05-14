@@ -19,7 +19,7 @@ def get_k_largest(test_list, k):
     return sorted(range(len(test_list)), key=lambda sub: test_list[sub])[-k:]
 
 
-def histogram_difference(cap, frame_count, init_frames):
+def histogram_difference_frame_selection(cap, frame_count, init_frames):
     key_frames = []
     hist_list = []
     prev_hist = None
@@ -60,7 +60,7 @@ def histogram_difference(cap, frame_count, init_frames):
     return key_frames
 
 
-def ssim_based_frame_selection(cap, frame_count, init_frames):
+def ssim_frame_selection(cap, frame_count, init_frames):
     ssim_list = []
     index = 1
     ret1, frame1 = cap.read()

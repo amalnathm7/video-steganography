@@ -29,6 +29,11 @@ def binary_to_decimal(n):
     return int(n, 2)
 
 
+def create_folder(folder_path):
+    if not os.path.exists(folder_path):
+        os.makedirs(folder_path)
+
+
 def get_init_frames(total_frames, count):
     list = [i for i in range(0, total_frames)]
     random.seed(len(list))
@@ -50,7 +55,7 @@ def adaptive_lsb332_extraction(region, i, j):
     return num
 
 
-def extract_data(cap, type):
+def extract_data(cap, output_file_path):
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     total_frames = cap.get(cv2.CAP_PROP_FRAME_COUNT)
@@ -60,12 +65,25 @@ def extract_data(cap, type):
     total_len = 0
     data = ""
     flag = False
-    data = ""
     key = None
     iv = None
     frame_no = 0
 
-    pixel_count = int(input("\nEnter secret code: "))
+    ret, frame = cap.read()
+    if not ret:
+        print("\nNo frames in stego video!\n")
+        return
+    
+    for j in range(0, width):
+        ch = chr(adaptive_lsb332_extraction(region=frame, i=0, j=j))
+
+        if (ch == '$'):
+            pixel_count = int(data)
+            data = ""
+            break
+        else:
+            data += ch
+    
     init_frames_count = 0
 
     while ((width * height * init_frames_count) < (pixel_count * INIT_DATA_THRESHOLD)):
@@ -74,6 +92,8 @@ def extract_data(cap, type):
     init_frames = get_init_frames(total_frames=int(total_frames), count=init_frames_count)
     block_size = math.floor(math.sqrt(min(width, height)))
 
+    cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
+
     while True:
         ret, frame = cap.read()
         if not ret:
@@ -81,6 +101,9 @@ def extract_data(cap, type):
 
         if (frame_no in init_frames):
             for i in range(0, height):
+                if(frame_no == 0 and i == 0):
+                    continue
+
                 for j in range(0, width):
                     ch = chr(adaptive_lsb332_extraction(region=frame, i=i, j=j))
 
@@ -171,16 +194,6 @@ def extract_data(cap, type):
                         else:
                                 extracted_data = decrypt_data(bytes.fromhex(data), iv, key)
 
-                                match type:
-                                    case 1:
-                                        output_file_path = "assets/extracted_files/texts/output.txt"
-                                    case 2:
-                                        output_file_path = "assets/extracted_files/texts/output.jpg"
-                                    case 3:
-                                        output_file_path = "assets/extracted_files/texts/output.mp3"
-                                    case 4:
-                                        output_file_path = "assets/extracted_files/texts/output.mp4"
-
                                 file = open(output_file_path, "wb")
 
                                 file.write(extracted_data)
@@ -205,11 +218,6 @@ def extract_data(cap, type):
     cv2.destroyAllWindows()
 
 
-def create_folder(folder_path):
-    if not os.path.exists(folder_path):
-        os.makedirs(folder_path)
-
-
 def data_extraction():
     print("\nVideo Steganography")
 
@@ -231,18 +239,30 @@ def data_extraction():
 
         match (file_type):
             case 1:
-                create_folder("assets/extracted_files/texts")
+                output_directory = "assets/extracted_files/texts/"
             case 2:
-                create_folder("assets/extracted_files/images")
+                output_directory = "assets/extracted_files/images/"
             case 3:
-                create_folder("assets/extracted_files/audios")
+                output_directory = "assets/extracted_files/audios/"
             case 4:
-                create_folder("assets/extracted_files/videos")
+                output_directory = "assets/extracted_files/videos/"
+
+        create_folder(output_directory)
+
+        match (file_type):
+            case 1:
+                output_file_path = output_directory + "output.txt"
+            case 2:
+                output_file_path = output_directory + "output.jpg"
+            case 3:
+                output_file_path = output_directory + "output.mp3"
+            case 4:
+                output_file_path = output_directory + "output.mp4"
 
         flag = False
 
         if file_type in [1, 2, 3, 4]:
-            extract_data(cap=cap, type=file_type)
+            extract_data(cap=cap, output_file_path=output_file_path)
         else:
             print("Invalid option!")
             flag = True

@@ -2,4 +2,5 @@
 /assets/extracted_files/**
 __pycache__/
 venv/
+output.csv
 .DS_Store

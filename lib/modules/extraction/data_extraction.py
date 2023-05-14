@@ -60,12 +60,25 @@ def extract_data(cap, type):
     total_len = 0
     data = ""
     flag = False
-    data = ""
     key = None
     iv = None
     frame_no = 0
 
-    pixel_count = int(input("\nEnter secret code: "))
+    ret, frame = cap.read()
+    if not ret:
+        print("\nNo frames in stego video!\n")
+        return
+    
+    for j in range(0, width):
+        ch = chr(adaptive_lsb332_extraction(region=frame, i=0, j=j))
+
+        if (ch == '$'):
+            pixel_count = int(data)
+            data = ""
+            break
+        else:
+            data += ch
+    
     init_frames_count = 0
 
     while ((width * height * init_frames_count) < (pixel_count * INIT_DATA_THRESHOLD)):
@@ -74,6 +87,8 @@ def extract_data(cap, type):
     init_frames = get_init_frames(total_frames=int(total_frames), count=init_frames_count)
     block_size = math.floor(math.sqrt(min(width, height)))
 
+    cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
+
     while True:
         ret, frame = cap.read()
         if not ret:
@@ -81,6 +96,9 @@ def extract_data(cap, type):
 
         if (frame_no in init_frames):
             for i in range(0, height):
+                if(frame_no == 0 and i == 0):
+                    continue
+
                 for j in range(0, width):
                     ch = chr(adaptive_lsb332_extraction(region=frame, i=i, j=j))
 

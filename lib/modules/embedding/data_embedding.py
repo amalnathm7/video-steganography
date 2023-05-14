@@ -42,12 +42,6 @@ def data_to_binary(data):
     return binary_data
 
 
-def get_init_frames(total_frames, count):
-    list = [i for i in range(0, total_frames)]
-    random.seed(len(list))
-    return random.sample(list, count)
-
-
 def adaptive_lsb332_embedding(binary, region, i, j):
     threshold = 9
     r_binary = int_to_binary(region[i, j, 0])
@@ -76,6 +70,12 @@ def adaptive_lsb332_embedding(binary, region, i, j):
     return region
 
 
+def get_init_frames(total_frames, count):
+    list = [i for i in range(0, total_frames)]
+    random.seed(len(list))
+    return random.sample(list, count)
+
+
 def embed_data(cap, writer, binary_data):
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
@@ -84,7 +84,11 @@ def embed_data(cap, writer, binary_data):
     is_embedded = False
 
     if total_frames == 0:
-        print("No frames in cover video!")
+        print("\nNo frames in cover video!\n")
+        return
+    
+    if (width < len(str(pixel_count) + "$")): # To embed pixel_count in the first row of first frame
+        print("\nData is large!\n")
         return
 
     init_frames_count = 0
@@ -164,9 +168,21 @@ def embed_data(cap, writer, binary_data):
         if not ret:
             break
 
+        if (frame_no == 0):
+            pixel_count_str = str(pixel_count) + "$"
+
+            j = 0
+            for c in pixel_count_str:
+                binary = format(ord(c), '08b')
+                adaptive_lsb332_embedding(binary=binary, region=frame, i=0, j=j)
+                j += 1
+
         if frame_no in init_frames:
             if (not is_init_embedded):
                 for i in range(0, height):
+                    if (frame_no == 0 and i == 0):
+                        continue
+                    
                     for j in range(0, width):
                         binary = init_binary_data[init_count]
                         init_count += 1
@@ -213,7 +229,7 @@ def embed_data(cap, writer, binary_data):
     if (init_count < init_pixel_count or count < pixel_count):
         print("\nEmbedding error!\n")
     else:
-        print(f"\nEmbedded successfully\n\nYour secret code is {pixel_count}\n")
+        print(f"\nEmbedded successfully\n")
 
 
 def data_embedding():

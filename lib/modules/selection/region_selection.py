@@ -18,35 +18,35 @@ def option(opt):
         case 5: return "crew"
 
 
-def GetEnergy(img):
+def get_energy(img):
     entropies = entropy(img.flatten())
     return np.mean(entropies)
     # return (img ** 2).sum()/img.size
 
 
-def GetIntensity(img):
+def get_intensity(img):
     diff = np.abs(np.diff(img.flatten()))
     return np.mean(diff)
     # return img.sum()/img.size
 
 
-def GetCoverage(img):
+def get_coverage(img):
     return np.count_nonzero(img)/img.size
     # threshold = 30
     # similar = np.sum(np.abs(np.diff(img))< threshold)
     # return similar/img.size
 
 
-def GetKurtosis(img):
+def get_kurtosis(img):
     return kurtosis(img.flatten())
 
 
 def get_fitness(frame, i, j, msg_size):
     img = frame[i:i+msg_size, j:j+1]
-    Energy = GetEnergy(img)
-    Intensity = GetIntensity(img)
-    Kurtosis = GetKurtosis(img)
-    Coverage = GetCoverage(img)
+    Energy = get_energy(img)
+    Intensity = get_intensity(img)
+    Kurtosis = get_kurtosis(img)
+    Coverage = get_coverage(img)
     # print(" Energy = {}, Intensity = {}, Kurtosis = {}, Coverage = {}".format(Energy,Intensity,Kurtosis,Coverage))
     Fitness = (Energy + (1 - Intensity) + Kurtosis+Coverage)/4
     # print("Fitness = {}".format(Fitness))
@@ -55,7 +55,7 @@ def get_fitness(frame, i, j, msg_size):
     return Fitness
 
 
-def Get_Index(regions, i, j):
+def get_index(regions, i, j):
     for region in regions:
         if (region['row'] == i and region['col'] == j):
             return region['index']
@@ -63,11 +63,11 @@ def Get_Index(regions, i, j):
     return -1
 
 
-def Absolute(array):
+def absolute(array):
     return [abs(x) for x in array]
 
 
-def Get_Alpha(wolves, regions):
+def get_alpha(wolves, regions):
     alpha_fitness = -np.inf
     alpha = [0, 0]
     beta_fitness = -np.inf
@@ -78,7 +78,7 @@ def Get_Alpha(wolves, regions):
         i = wolf[0]
         j = wolf[1]
 
-        index = Get_Index(regions, i, j)
+        index = get_index(regions, i, j)
 
         # print("index = ",index)
         if (index >= len(regions)):
@@ -98,7 +98,7 @@ def Get_Alpha(wolves, regions):
     return (alpha, beta, delta)
 
 
-def Get_Robust_Regions(frame, height, width, msg_size):
+def get_robust_regions(frame, height, width, msg_size):
     """Initialising population and the initial wolf population"""
     population = 20
     regions = []
@@ -129,7 +129,7 @@ def Get_Robust_Regions(frame, height, width, msg_size):
     r2 = random.random()
     G = (2*a*r1) - a
     H = 2*r2
-    alpha, beta, delta = Get_Alpha(wolves, regions)
+    alpha, beta, delta = get_alpha(wolves, regions)
     # print(alpha,beta,delta)
 
     # print("Len=",len(regions))
@@ -144,8 +144,8 @@ def Get_Robust_Regions(frame, height, width, msg_size):
             r2 = np.random.rand(2)
             G1 = (2*a).dot(r1) - a
             H1 = 2*r2
-            K_alpha = Absolute(G1.dot(alpha) - wolf)
-            p1 = Absolute(alpha - H1.dot(K_alpha))
+            K_alpha = absolute(G1.dot(alpha) - wolf)
+            p1 = absolute(alpha - H1.dot(K_alpha))
             p1 = np.array(p1)
             if (p1[0] >= height):
                 p1[0] = height-1
@@ -159,8 +159,8 @@ def Get_Robust_Regions(frame, height, width, msg_size):
             r2 = np.random.rand(2)
             G2 = (2*a).dot(r1) - a
             H2 = 2*r2
-            K_beta = Absolute(G2.dot(beta) - wolf)
-            p2 = Absolute(beta - H2.dot(K_beta))
+            K_beta = absolute(G2.dot(beta) - wolf)
+            p2 = absolute(beta - H2.dot(K_beta))
             p2 = np.array(p2)
 
             if (p2[0] >= height):
@@ -175,8 +175,8 @@ def Get_Robust_Regions(frame, height, width, msg_size):
             r2 = np.random.rand(2)
             G3 = (2*a).dot(r1) - a
             H3 = 2*r2
-            K_delta = Absolute(G3.dot(delta) - wolf)
-            p3 = Absolute(delta - H3.dot(K_delta))
+            K_delta = absolute(G3.dot(delta) - wolf)
+            p3 = absolute(delta - H3.dot(K_delta))
             p3 = np.array(p3)
             if (p3[0] >= height):
                 p3[0] = height-1
@@ -207,7 +207,7 @@ def Get_Robust_Regions(frame, height, width, msg_size):
             wolves[i] = p_next
             i += 1
 
-        (alpha, beta, delta) = Get_Alpha(wolves, regions)
+        (alpha, beta, delta) = get_alpha(wolves, regions)
         # print("Alpha = {}, Beta ={}, Delta={}".format(alpha,beta,delta))
 
         t += 1
@@ -228,27 +228,27 @@ def Get_Robust_Regions(frame, height, width, msg_size):
     return ([(alpha[0], alpha[1]), (alpha[0]+1, alpha[1]+msg_size)])
 
 
-def Check_Region(robust_regions, frame_no, b):
+def check_region(robust_regions, frame_no, b):
     for i in robust_regions[frame_no]:
         if (i['start'] == b['start']) and (i['end'] == b['end']):
             return 1
     return 0
 
 
-def Set_Coordinates(robust_regions, frame, frame_no, height, width, msg_size):
-    coordinates = Get_Robust_Regions(frame, height, width, msg_size)
+def set_coordinates(robust_regions, frame, frame_no, height, width, msg_size):
+    coordinates = get_robust_regions(frame, height, width, msg_size)
     b = {}
     b['start'] = (coordinates[0][0], coordinates[1][0])
     b['end'] = (coordinates[1][0], coordinates[1][1])
-    if (Check_Region(robust_regions, frame_no, b)) == 0:
+    if (check_region(robust_regions, frame_no, b)) == 0:
         robust_regions[frame_no].append(b)
     else:
-        robust_regions = Set_Coordinates(
+        robust_regions = set_coordinates(
             robust_regions, frame, frame_no, height, width, msg_size)
     return robust_regions
 
 
-def GWO(cap, msg_size, frame_list, no_of_blocks):
+def gwo_region_selection(cap, msg_size, frame_list, no_of_blocks):
     frame_no = 0
     robust_regions = {}
     height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
@@ -271,20 +271,20 @@ def GWO(cap, msg_size, frame_list, no_of_blocks):
                 robust_regions[frame_no].append(b)
             else:
                 coordinates = Get_Robust_Regions(frame,height,width,msg_size)"""
-            robust_regions = Set_Coordinates(
+            robust_regions = set_coordinates(
                 robust_regions, frame, frame_no, height, width, msg_size)
         # print(robust_regions)
     return robust_regions
 
 
-def Find_Summation(next_components):
+def find_summation(next_components):
     s = 0
     for i in next_components:
         s = s+(i*i)
     return s
 
 
-def Find_Index_Min(block, value):
+def find_index_min(block, value):
     l = []
     mini = 1000000
     ind = -1
@@ -295,7 +295,7 @@ def Find_Index_Min(block, value):
                 ind = b['index']
     return ind
 
-def Find_Min_PCA(blocks):
+def find_min_pca(blocks):
     minpca = 1000000
     ind = -1
     for b in blocks:
@@ -304,7 +304,7 @@ def Find_Min_PCA(blocks):
     return minpca
 
 
-def Find_Threshold(y,block_size,height,width,no_of_blocks):
+def find_threshold(y,block_size,height,width,no_of_blocks):
     #threshold = 9.5
     #max_difference = 0.2
     summ = 0
@@ -345,7 +345,7 @@ def Find_Threshold(y,block_size,height,width,no_of_blocks):
             pca.fit(Y)
             next_components = pca.singular_values_
             # print(next_components)
-            summation = Find_Summation(next_components)
+            summation = find_summation(next_components)
 
             """Finding the propotion of the first principal component of the image"""
             if (summation != 0):
@@ -462,7 +462,7 @@ def pca_analysis(y, block_size, height, width, no_of_blocks, frame_no):
             pca.fit(Y)
             next_components = pca.singular_values_
             # print(next_components)
-            summation = Find_Summation(next_components)
+            summation = find_summation(next_components)
 
             """Finding the propotion of the first principal component of the image"""
             if (summation != 0):
@@ -485,13 +485,13 @@ def pca_analysis(y, block_size, height, width, no_of_blocks, frame_no):
                 if(propotion_first_component > min_pca):
                 # print("Changed")
                 # print(blocks)
-                    ind = Find_Index_Min(blocks, propotion_first_component)
+                    ind = find_index_min(blocks, propotion_first_component)
                     if (ind != -1):
                         blocks[ind]['pca'] = propotion_first_component
                         blocks[ind]['row'] = i
                         blocks[ind]['col'] = j
                         blocks[ind]['index'] = ind
-                        min_pca = Find_Min_PCA(blocks)
+                        min_pca = find_min_pca(blocks)
 
             # if(propotion_first_component > threshold):
             #     if(len(blocks) < no_of_blocks):
@@ -519,7 +519,7 @@ def pca_analysis(y, block_size, height, width, no_of_blocks, frame_no):
     return blocks
 
 
-def Get_Regions(blocks, msg_size):
+def get_regions(blocks, msg_size):
     l = []
     for block in blocks:
 
@@ -530,7 +530,7 @@ def Get_Regions(blocks, msg_size):
     return l
 
 
-def PCA_Implementation(cap, block_size, frame_list, no_of_blocks):
+def pca_region_selection(cap, block_size, frame_list, no_of_blocks):
     frame_no = -1
     robust_regions = {}
 
@@ -558,7 +558,7 @@ def PCA_Implementation(cap, block_size, frame_list, no_of_blocks):
         block = pca_analysis(y, block_size, height, width,
                              no_of_blocks=no_of_blocks,frame_no= frame_no )
         # print(block)
-        l = Get_Regions(block, block_size)
+        l = get_regions(block, block_size)
         robust_regions[frame_no] = l
         # print(robust_regions)
     return robust_regions

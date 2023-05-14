@@ -135,10 +135,10 @@ def embed_data(cap, writer, binary_data):
 
     cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
 
-    selected_regions = rs.PCA_Implementation(
+    selected_regions = rs.pca_region_selection(
         cap=cap, block_size=block_size, frame_list=selected_frames, no_of_blocks=no_of_blocks)
 
-    # selected_regions = rs.GWO(cap=cap, msg_size=block_size,
+    # selected_regions = rs.gwo_region_selection(cap=cap, msg_size=block_size,
     #                         frame_list=selected_frames, no_of_blocks=no_of_blocks)
 
     # print(f'\nSelected regions: {selected_regions}')

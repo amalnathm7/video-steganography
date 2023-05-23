@@ -114,8 +114,9 @@ def embed_data(cap, writer, binary_data):
     print("\nSelecting robust frames")
 
     # selected_frames = []
-    # for i in range(1, int(total_frames)):
-    #     selected_frames.append(i)
+    # for i in range(0, int(total_frames)):
+    #     if i not in init_frames:
+    #         selected_frames.append(i)
     
     cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
 
@@ -129,9 +130,12 @@ def embed_data(cap, writer, binary_data):
     print("\nSelecting robust regions")
 
     # selected_regions = {}
-
-    # for i in range(1, int(total_frames)):
-    #     selected_regions[i] = [{'start': (0, 0), 'end': (int(width) - 1, int(height) - 1)}]
+    # for i in range(0, int(total_frames)):
+    #         if i not in init_frames:
+    #             if i == 0:
+    #                 selected_regions[i] = [{'start': (1, 0), 'end': (int(height) - 1, int(width) - 1)}]
+    #             else:
+    #                 selected_regions[i] = [{'start': (0, 0), 'end': (int(height) - 1, int(width) - 1)}]
 
     cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
 

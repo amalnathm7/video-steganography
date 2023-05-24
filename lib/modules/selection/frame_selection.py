@@ -66,8 +66,8 @@ def ssim_frame_selection(cap, frame_count, init_frames):
     ret1, frame1 = cap.read()
     ssim_list.append(0)
 
-    if(0 in init_frames):
-        print(f"Init frame 0")
+    # if(0 in init_frames):
+    #     print(f"Init frame 0")
     
     if ret1:
         while True:
@@ -78,11 +78,11 @@ def ssim_frame_selection(cap, frame_count, init_frames):
 
             if (index in init_frames):
                 ssim_list.append(-1)
-                print(f"Init frame {index}")
+                # print(f"Init frame {index}")
             else:
-                ssim_val1 = ssim(frame1, frame2)[0]
-                ssim_list.append(ssim_val1)
-                print(f"SSIM({index}): {ssim_val1}")
+                ssim_val = ssim(frame1, frame2)[0]
+                ssim_list.append(ssim_val)
+                # print(f"SSIM({index}): {ssim_val}")
 
             index += 1
             frame1 = frame2

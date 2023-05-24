@@ -67,6 +67,7 @@ def extract_data(cap, output_file_path):
     flag = False
     key = None
     iv = None
+    pixel_count = None
     frame_no = 0
 
     ret, frame = cap.read()
@@ -83,6 +84,10 @@ def extract_data(cap, output_file_path):
             break
         else:
             data += ch
+
+    if(pixel_count == None):
+        print("\nExtraction Error!\n")
+        return
     
     init_frames_count = 0
 
@@ -105,42 +110,46 @@ def extract_data(cap, output_file_path):
                     continue
 
                 for j in range(0, width):
-                    ch = chr(adaptive_lsb332_extraction(region=frame, i=i, j=j))
+                    try:
+                        ch = chr(adaptive_lsb332_extraction(region=frame, i=i, j=j))
 
-                    if (extracted_len == -1 and ch == '$'):
-                        if (key == None):
-                            key = bytes.fromhex(data)
-                            data = ""
-                        elif (iv == None):
-                            iv = bytes.fromhex(data)
-                            data = ""
+                        if (extracted_len == -1 and ch == '$'):
+                            if (key == None):
+                                key = bytes.fromhex(data)
+                                data = ""
+                            elif (iv == None):
+                                iv = bytes.fromhex(data)
+                                data = ""
+                            else:
+                                total_len = int(data)
+                                data = ""
+                                extracted_len = 0
+                        elif extracted_len < total_len:
+                            if (extracted_len != -1):
+                                extracted_len += 1
+                            data += ch
                         else:
-                            total_len = int(data)
-                            data = ""
-                            extracted_len = 0
-                    elif extracted_len < total_len:
-                        if (extracted_len != -1):
-                            extracted_len += 1
-                        data += ch
-                    else:
-                            extracted_data = decrypt_data(bytes.fromhex(data), iv, key)
+                                extracted_data = decrypt_data(bytes.fromhex(data), iv, key)
 
-                            init_data = pickle.loads(extracted_data)
+                                init_data = pickle.loads(extracted_data)
 
-                            print("\nIdentifying selected frames")
+                                print("\nIdentifying selected frames")
 
-                            print("\nIdentifying selected regions")
+                                print("\nIdentifying selected regions")
 
-                            for frame in init_data:
-                                selected_frames.append(frame)
-                                selected_regions[frame] = []
+                                for frame in init_data:
+                                    selected_frames.append(frame)
+                                    selected_regions[frame] = []
 
-                                for region in init_data[frame]:
-                                    selected_regions[frame].append({'start': region, 'end': (region[0] + block_size - 1, region[1] + block_size - 1)})
+                                    for region in init_data[frame]:
+                                        selected_regions[frame].append({'start': region, 'end': (region[0] + block_size - 1, region[1] + block_size - 1)})
 
-                            flag = True
-                            break
-
+                                flag = True
+                                break
+                    except:
+                        print(f"\nExtraction error in frame {frame_no}!\n")
+                        return
+                    
                 if (flag):
                     break
 
@@ -173,36 +182,41 @@ def extract_data(cap, output_file_path):
 
                 for i in range(0, region_height):
                     for j in range(0, region_width):
-                        ch = chr(adaptive_lsb332_extraction(
-                            region=region, i=i, j=j))
+                        try:
+                            ch = chr(adaptive_lsb332_extraction(
+                                region=region, i=i, j=j))
 
-                        if (extracted_len == -1 and ch == '$'):
-                            if (key == None):
-                                key = bytes.fromhex(data)
-                                data = ""
-                            elif (iv == None):
-                                iv = bytes.fromhex(data)
-                                data = ""
+                            if (extracted_len == -1 and ch == '$'):
+                                if (key == None):
+                                    key = bytes.fromhex(data)
+                                    data = ""
+                                elif (iv == None):
+                                    iv = bytes.fromhex(data)
+                                    data = ""
+                                else:
+                                    total_len = int(data)
+                                    data = ""
+                                    extracted_len = 0
+                            elif extracted_len < total_len:
+                                if (extracted_len != -1):
+                                    extracted_len += 1
+                                data += ch
                             else:
-                                total_len = int(data)
-                                data = ""
-                                extracted_len = 0
-                        elif extracted_len < total_len:
-                            if (extracted_len != -1):
-                                extracted_len += 1
-                            data += ch
-                        else:
-                                extracted_data = decrypt_data(bytes.fromhex(data), iv, key)
+                                    extracted_data = decrypt_data(bytes.fromhex(data), iv, key)
 
-                                file = open(output_file_path, "wb")
+                                    file = open(output_file_path, "wb")
 
-                                file.write(extracted_data)
+                                    file.write(extracted_data)
 
-                                print(
-                                    f'\n{output_file_path} successfully created\n')
-                                
-                                flag = True
-                                break
+                                    print(
+                                        f'\n{output_file_path} successfully created\n')
+                                    
+                                    flag = True
+                                    break
+                        except:
+                            print(f"\nExtraction error in frame {frame_no}!\n")
+                            return
+                    
                     if (flag):
                         break
 

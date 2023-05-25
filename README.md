@@ -26,7 +26,13 @@ In terms of future scope, several areas can be explored to further enhance the p
 
 ## Installation and Use
 
-To install the proposed video steganography technique, follow the following steps:
+To install the proposed video steganography technique, execute the commands below:
+- ```shell
+- ```cd path/to/your/projects/directory
+- ```git clone https://github.com/amalnathm7/video_steganography.git
+- Open the project in any IDE as you prefer
+- Make sure you have Python installed (The version used in the research is Python 3.9.6)
+- Open the terminal in the IDE and execute ```pip3 install -r requirements.txt
 - 
 
 ## Detailed Report

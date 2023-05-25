@@ -64,7 +64,7 @@ The detailed report can be found here:
 <div align="left">
     <a href="https://github.com/amalnathm7"><img src="https://avatars.githubusercontent.com/u/64605131?v=4" width="100" height="100"></a>
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-    <a href="https://github.com/Meenakshi-2604"><img src="https://avatars.githubusercontent.com/u/62795103?v=4" width="100" height="100"></a>
+    <a href="https://github.com/Meenakshi2604"><img src="https://avatars.githubusercontent.com/u/62795103?v=4" width="100" height="100"></a>
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
     <a href="https://github.com/CodeitM"><img src="https://avatars.githubusercontent.com/u/70884500?v=4" width="100" height="100"></a>
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;

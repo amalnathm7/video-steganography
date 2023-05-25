@@ -14,4 +14,29 @@ In the first phase, the multimedia input data, whether text, image, audio, or vi
 
 ![Flow Chart](https://github.com/amalnathm7/video-steganography/assets/64605131/8615c47f-688d-478c-8af7-d036053d2444)
 
-## 
+## Conclusion and Future Scope
+
+This research proposed a steganographic methodology for embedding various types of multimedia files into cover videos while preserving the visual integrity and minimising perceptible distortions. From the analysis of the experimental results, several key conclusions can be drawn. Firstly, the comparison between the cover frame and the stego frame, as well as their respective histograms, demonstrated that the proposed methodology successfully concealed the input files within the cover frames without introducing noticeable visual distortions or alterations. The similarity between the histograms further indicated that the distribution of pixel values remained largely unchanged, emphasising the preservation of the original visual content.
+
+Additionally, the evaluation of performance metrics for different input sizes revealed that as the size of the embedded text data increased, there was a gradual decrease in PSNR value. For instance, the percentage decrease of the PSNR values for embedding text input of size 5 MB to 10 MB is only 7.1%, suggesting that the distortion in the stego video did not rapidly worsen with larger amounts of embedded text data. Furthermore, the SSIM and NCC values close to unity, along with a constant BER value of zero, indicated a consistent high level of structural similarity, correlation, and accurate extraction of the embedded text from the stego video. Similar trends were observed when applying the proposed methodology to image, audio, and video inputs. 
+
+The comparison with several state-of-the-art techniques demonstrated the superiority of the proposed methodology where it showcased improved results such as PSNR values ranging above 60 dB, 50 dB and 40 dB for input data with sizes nearly 100 KB, 1 MB and 10 MB respectively. The consistent performance across different file types with a 45.1% embedding capacity, along with the ability to maintain visual integrity and minimise perceptible distortions, sets the proposed methodology apart from most of the existing techniques.
+
+In terms of future scope, several areas can be explored to further enhance the proposed methodology. Firstly, it is advisable to investigate the potential of deep learning algorithms for video steganography. Deep learning, particularly utilising neural networks, has shown significant advancements in various domains and could be leveraged to optimise the embedding and extraction process in video steganography. By exploring deep learning algorithms on large-scale video datasets, it is expected that the proposed methodology can be further refined, potentially leading to improved performance, enhanced security, and increased capacity for embedding multimedia data within cover videos. Furthermore, the robustness of the proposed methodology against various content-preserving operations like compression, cropping, resizing or transcoding can further improve the resilience of the methodology. Additionally, the research shall be extended to accommodate real-time applications, such as live video streaming, where embedding and extraction processes need to be performed in a dynamic and time-sensitive manner.
+
+## Installation and Use
+
+To install the proposed video steganography technique, follow the following steps:
+- 
+
+## Detailed Report
+
+The detailed report can be found here: 
+
+## Authors
+
+- Amal Nath M
+- Meenakshi Nair
+- Sinadin Shibin
+- Mili Murali
+

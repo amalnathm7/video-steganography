@@ -430,13 +430,14 @@ def pca_analysis(y, block_size, height, width, no_of_blocks, frame_no):
     max_pca = 0
     min_pca = 1000000
     max_row, max_col = 0, 0
-    track = 0
 
     # Dividing the image into blocks and finding the PCA of each block
-    for i in range(0, int(height) - block_size, block_size):
-        for j in range(row_start, int(width) - block_size, block_size):
-            if((i + block_size >= height) and (j + block_size >= width)):
-                track = 1
+    for i in range(0, int(height), block_size):
+        if(i + block_size - 1 >= height):
+            break
+
+        for j in range(row_start, int(width), block_size):
+            if(j + block_size - 1 >= width):
                 break
 
             r = y[i:i+block_size, j:j+block_size]
@@ -508,8 +509,6 @@ def pca_analysis(y, block_size, height, width, no_of_blocks, frame_no):
                 print(max_pca)
                 max_row = i
                 max_col = j"""
-        if(track == 1):
-            break
 
     # print(max_row)
     # print(max_col)

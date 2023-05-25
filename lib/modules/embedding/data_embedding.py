@@ -9,6 +9,7 @@ import selection.frame_selection as fs
 import selection.region_selection as rs
 import pickle
 import random
+import base64
 
 
 INIT_DATA_THRESHOLD = 0.1
@@ -27,6 +28,10 @@ def option(opt):
         case 5: return "crew"
 
 
+def base64_enc_dec(data ):
+    return base64.b64encode(data).decode('utf-8')
+
+
 def file_to_binary(file_path):
     print("\nAccessing file " + file_path)
     file = open(file_path, "rb")
@@ -36,8 +41,8 @@ def file_to_binary(file_path):
 
 def data_to_binary(data):
     encrypted_data, iv, key = encrypt_data(data)
-    data_hex = encrypted_data.hex()
-    data = key.hex() + "$" + iv.hex() + "$" + str(len(data_hex)) + "$" + data_hex
+    data_hex = base64_enc_dec(encrypted_data)
+    data = base64_enc_dec(key) + "$" + base64_enc_dec(iv) + "$" + str(len(data_hex)) + "$" + data_hex
     binary_data = [format(ord(char), '08b') for char in data]
     return binary_data
 

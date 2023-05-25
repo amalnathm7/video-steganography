@@ -7,6 +7,7 @@ import math
 import cv2
 import pickle
 import random
+import base64
 
 
 INIT_DATA_THRESHOLD = 0.1
@@ -115,10 +116,10 @@ def extract_data(cap, output_file_path):
 
                         if (extracted_len == -1 and ch == '$'):
                             if (key == None):
-                                key = bytes.fromhex(data)
+                                key = base64.b64decode(data)
                                 data = ""
                             elif (iv == None):
-                                iv = bytes.fromhex(data)
+                                iv = base64.b64decode(data)
                                 data = ""
                             else:
                                 total_len = int(data)
@@ -129,7 +130,7 @@ def extract_data(cap, output_file_path):
                                 extracted_len += 1
                             data += ch
                         else:
-                                extracted_data = decrypt_data(bytes.fromhex(data), iv, key)
+                                extracted_data = decrypt_data(base64.b64decode(data), iv, key)
 
                                 init_data = pickle.loads(extracted_data)
 
@@ -188,10 +189,10 @@ def extract_data(cap, output_file_path):
 
                             if (extracted_len == -1 and ch == '$'):
                                 if (key == None):
-                                    key = bytes.fromhex(data)
+                                    key = base64.b64decode(data)
                                     data = ""
                                 elif (iv == None):
-                                    iv = bytes.fromhex(data)
+                                    iv = base64.b64decode(data)
                                     data = ""
                                 else:
                                     total_len = int(data)
@@ -202,7 +203,7 @@ def extract_data(cap, output_file_path):
                                     extracted_len += 1
                                 data += ch
                             else:
-                                    extracted_data = decrypt_data(bytes.fromhex(data), iv, key)
+                                    extracted_data = decrypt_data(base64.b64decode(data), iv, key)
 
                                     file = open(output_file_path, "wb")
 
@@ -244,7 +245,6 @@ def data_extraction():
 
     filename = option(opt)
     cap = cv2.VideoCapture(f'assets/stego_videos/{filename}_stego.avi')
-    print(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     flag = True
 
     while (flag):

@@ -26,14 +26,32 @@ In terms of future scope, several areas can be explored to further enhance the p
 
 ## Installation and Use
 
-To install the proposed video steganography technique, execute the commands below:
-- ```shell
-- ```cd path/to/your/projects/directory
-- ```git clone https://github.com/amalnathm7/video_steganography.git
-- Open the project in any IDE as you prefer
-- Make sure you have Python installed (The version used in the research is Python 3.9.6)
-- Open the terminal in the IDE and execute ```pip3 install -r requirements.txt
-- 
+To install the proposed video steganography technique, please follow the instructions below:
+
+1. Open a terminal or command prompt and navigate to your desired projects directory:
+   ```shell
+   cd path/to/your/projects/directory
+   ```
+
+2. Clone the video steganography repository from GitHub:
+   ```shell
+   git clone https://github.com/amalnathm7/video_steganography.git
+   ```
+
+3. Open the project in your preferred IDE.
+
+4. Ensure that you have Python3 and pip3 installed, preferably Python 3.9.6 (or a compatible version).
+
+5. Open the terminal within your IDE and install the required dependencies by running the following command:
+   ```shell
+   pip3 install -r requirements.txt
+   ```
+
+6. You shall run _data_embedding.py_ for embedding data and _data_extraction.py_ for extracting data. Otherwise, you can run _main.py_ file to perform both embedding and extraction together. Ten sample cover videos are used in the research for embedding text, image, audio and video files of seven different sizes. 
+
+7. You shall run _experiments.py_ to calculate the PSNR, SSIM, NCC and BER values and write it into an _output.csv_ file. 
+
+8. Now you are ready to use the proposed video steganography technique in your project.
 
 ## Detailed Report
 
@@ -41,8 +59,26 @@ The detailed report can be found here:
 
 ## Authors
 
-- Amal Nath M
-- Meenakshi Nair
-- Sinadin Shibin
-- Mili Murali
+## Authors
+
+<div align="left">
+    <a href="https://github.com/amalnathm7"><img src="https://avatars.githubusercontent.com/u/64605131?v=4" width="100" height="100"></a>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    <a href="https://github.com/Meenakshi-2604"><img src="https://avatars.githubusercontent.com/u/62795103?v=4" width="100" height="100"></a>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    <a href="https://github.com/CodeitM"><img src="https://avatars.githubusercontent.com/u/70884500?v=4" width="100" height="100"></a>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    <a href="https://github.com/sinad-shibin"><img src="https://avatars.githubusercontent.com/u/59430074?v=4" width="100" height="100"></a>
+</div>
+
+<div align="left">
+    <strong>Amal Nath M.</strong>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    <strong>Meenakshi Nair</strong>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    <strong>Mili Murali</strong>
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    <strong>Sinadin Shibin</strong>
+</div>
+
 

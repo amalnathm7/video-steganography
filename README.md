@@ -53,11 +53,11 @@ To install the proposed video steganography technique, please follow the instruc
 
 8. Now you are ready to use the proposed video steganography technique in your project.
 
-## Detailed Report
+## Research Report
 
-The detailed report can be found here: 
+The research report can be found here: 
 
-[Research Report](https://drive.google.com/file/d/1ekmYEx0LL7YqzeH-CMO_RPMXVcmCI5sn/view?usp=share_link)
+[Click to view Research Report](https://drive.google.com/file/d/1ekmYEx0LL7YqzeH-CMO_RPMXVcmCI5sn/view?usp=share_link)
 
 ## Authors
 

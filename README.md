@@ -57,7 +57,7 @@ To install the proposed video steganography technique, please follow the instruc
 
 The research report can be found here: 
 
-[Click to view Research Report](https://drive.google.com/file/d/1ekmYEx0LL7YqzeH-CMO_RPMXVcmCI5sn/view?usp=share_link)
+[Click to view the research report](https://drive.google.com/file/d/1ekmYEx0LL7YqzeH-CMO_RPMXVcmCI5sn/view?usp=share_link)
 
 ## Authors
 

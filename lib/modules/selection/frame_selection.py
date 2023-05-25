@@ -2,15 +2,6 @@ import cv2
 from sewar import ssim
 
 
-def option(opt):
-    match opt:
-        case 1: return "akiyo"
-        case 2: return "bowing"
-        case 3: return "bus"
-        case 4: return "city"
-        case 5: return "crew"
-
-
 def get_k_smallest(test_list, k):
     return sorted(range(len(test_list)), key=lambda sub: test_list[sub])[:k]
 

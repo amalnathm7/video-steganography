@@ -7,6 +7,7 @@ import math
 from preprocessing.encrypt import encrypt_data
 import selection.frame_selection as fs
 import selection.region_selection as rs
+import experiments.experiments as expt 
 import pickle
 import random
 import base64
@@ -24,8 +25,13 @@ def option(opt):
         case 1: return "akiyo"
         case 2: return "bowing"
         case 3: return "bus"
-        case 4: return "city"
-        case 5: return "crew"
+        case 4: return "carphone"
+        case 5: return "city"
+        case 6: return "crew"
+        case 7: return "deadline"
+        case 8: return "football"
+        case 9: return "salesman"
+        case 10: return "suzie"
 
 
 def base64_enc_dec(data ):
@@ -124,9 +130,7 @@ def embed_data(cap, writer, binary_data):
     #         selected_frames.append(i)
     
     cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
-
     selected_frames = fs.histogram_difference_frame_selection(cap=cap, frame_count=no_of_frames, init_frames=init_frames)
-
     # selected_frames = fs.ssim_frame_selection(cap=cap, frame_count=no_of_frames, init_frames=init_frames)
 
     # selected_frames.sort()
@@ -143,10 +147,8 @@ def embed_data(cap, writer, binary_data):
     #                 selected_regions[i] = [{'start': (0, 0), 'end': (int(height) - 1, int(width) - 1)}]
 
     cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
-
     selected_regions = rs.pca_region_selection(
         cap=cap, block_size=block_size, frame_list=selected_frames, no_of_blocks=no_of_blocks)
-
     # selected_regions = rs.gwo_region_selection(cap=cap, msg_size=block_size,
     #                         frame_list=selected_frames, no_of_blocks=no_of_blocks)
 
@@ -242,14 +244,14 @@ def embed_data(cap, writer, binary_data):
 
 
 def data_embedding():
-    print("\nVideo Steganography")
+    print("\nVideo Steganography\n")
 
     flag = True
     while flag:
-        print("\n1. akiyo\n2. bowing\n3. bus\n4. city\n5. crew\n")
+        print("1. akiyo\n2. bowing\n3. bus\n4. carphone\n5. city\n6. crew\n7. deadline\n8. football\n9. salesman\n10. suzie\n")
         opt = int(input("Select cover video: "))
 
-        if (opt > 0 and opt < 6):
+        if 1 <= opt <= 10:
             filename = option(opt)
             cap = cv2.VideoCapture(f'assets/cover_videos/{filename}_cif.y4m')
 

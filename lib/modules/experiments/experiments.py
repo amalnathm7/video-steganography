@@ -3,17 +3,26 @@ import numpy as np
 from sewar.full_ref import psnr, ssim
 from scipy.stats import pearsonr
 import csv
+
+
 def option(opt):
     match opt:
         case 1: return "akiyo"
         case 2: return "bowing"
         case 3: return "bus"
-        case 4: return "city"
-        case 5: return "crew"
+        case 4: return "carphone"
+        case 5: return "city"
+        case 6: return "crew"
+        case 7: return "deadline"
+        case 8: return "football"
+        case 9: return "salesman"
+        case 10: return "suzie"
+
 
 def calculate_ncc(original_signal, received_signal):
     ncc, _ = pearsonr(original_signal.flatten(), received_signal.flatten())
     return ncc
+
 
 def calculate_ber(original_signal, received_signal):
     original_binary = np.where(original_signal.flatten() >= 128, 1, 0)
@@ -22,7 +31,8 @@ def calculate_ber(original_signal, received_signal):
     ber = num_errors / len(original_binary)
     return ber
 
-def main():
+
+def experiments():
     flag = True
     total_psnr = 0
     total_ssim = 0
@@ -30,10 +40,13 @@ def main():
     total_ber = 0
     count = 0
     index = 0
+
+    print("\nVideo Steganography\n")
+
     while flag:
-        print("1. akiyo\n2. bowing\n3. bus\n4. city\n5. crew\n")
+        print("\n1. akiyo\n2. bowing\n3. bus\n4. carphone\n5. city\n6. crew\n7. deadline\n8. football\n9. salesman\n10. suzie\n")
         opt = int(input("Select video: "))
-        if 1 <= opt <= 5:
+        if 1 <= opt <= 10:
             flag = False
         else:
             print("Invalid option!\n")
@@ -61,26 +74,26 @@ def main():
             total_ncc += ncc_val
             total_ber += ber_val
 
-            print(f'Frame {index}')
-            print(psnr_val)
-            print(ssim_val)
-            print(ncc_val)
-            print(ber_val)
-            print("\n")
+            # print(f'Frame {index}')
+            # print(psnr_val)
+            # print(ssim_val)
+            # print(ncc_val)
+            # print(ber_val)
+            # print("\n")
 
             count += 1
         
         index += 1
 
-    print(count)
     average_psnr = total_psnr / count
     average_ssim = total_ssim / count
     average_ncc = total_ncc / count
     average_ber = total_ber / count
-    with open("output.csv","a") as file:
+
+    with open("output.csv", "a") as file:
         writter = csv.writer(file)
-        # writter.writerow(["Average PSNR","Average SSIM","Average NCC","Average BER"])
-        writter.writerow([average_psnr, average_ssim,average_ncc,average_ber])
+        writter.writerow([average_psnr, average_ssim, average_ncc, average_ber])
+    
     # print("Average PSNR:", average_psnr)
     # print("Average SSIM:", average_ssim)
     # print("Average NCC:", average_ncc)
@@ -91,4 +104,4 @@ def main():
     cv2.destroyAllWindows()
 
 if __name__ == '__main__':
-    main()
+    experiments()

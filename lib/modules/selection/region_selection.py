@@ -9,15 +9,6 @@ from scipy.stats import kurtosis
 from scipy.stats import entropy
 
 
-def option(opt):
-    match opt:
-        case 1: return "akiyo"
-        case 2: return "bowing"
-        case 3: return "bus"
-        case 4: return "city"
-        case 5: return "crew"
-
-
 def get_energy(img):
     entropies = entropy(img.flatten())
     return np.mean(entropies)

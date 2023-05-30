@@ -234,19 +234,20 @@ def extract_data(cap, output_file_path):
 
         frame_no += 1
 
-    cap.release()
-    cv2.destroyAllWindows()
-
 
 def data_extraction():
     print("\nVideo Steganography\n")
 
-    flag = False
-    while not flag:
+    flag = True
+
+    while flag:
         print("1. akiyo\n2. bowing\n3. bus\n4. carphone\n5. city\n6. crew\n7. deadline\n8. football\n9. salesman\n10. suzie\n")
         opt = int(input("Select stego video: "))
-        if 1 <= opt <= 10:
-            flag = True
+
+        if (1 <= opt <= 10):
+            flag = False
+        else:
+            print("\nInvalid option!\n")
 
     filename = option(opt)
     cap = cv2.VideoCapture(f'assets/stego_videos/{filename}_stego.avi')
@@ -283,9 +284,10 @@ def data_extraction():
         if file_type in [1, 2, 3, 4]:
             extract_data(cap=cap, output_file_path=output_file_path)
         else:
-            print("Invalid option!")
+            print("\nInvalid option!")
             flag = True
-
+    
+    cap.release()
 
 if __name__ == '__main__':
     data_extraction()

@@ -247,11 +247,12 @@ def data_embedding():
     print("\nVideo Steganography\n")
 
     flag = True
+    
     while flag:
         print("1. akiyo\n2. bowing\n3. bus\n4. carphone\n5. city\n6. crew\n7. deadline\n8. football\n9. salesman\n10. suzie\n")
         opt = int(input("Select cover video: "))
 
-        if 1 <= opt <= 10:
+        if (1 <= opt <= 10):
             filename = option(opt)
             cap = cv2.VideoCapture(f'assets/cover_videos/{filename}_cif.y4m')
 
@@ -261,7 +262,7 @@ def data_embedding():
             width = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
             flag = False
         else:
-            print("Invalid option!")
+            print("\nInvalid option!\n")
 
     print(
         f"\nVideo: {filename}\nFrame per second: {video_fps}\nTotal frames: {total_frames}\nHeight: {height}\nWidth: {width}")
@@ -278,25 +279,36 @@ def data_embedding():
         print("\n1. Text\n2. Image\n3. Audio\n4. Video\n")
         file_type = int(input("Select secret file type: "))
 
+        if file_type not in [1, 2, 3, 4]:
+            print("\nInvalid option!")
+            continue
+        
         flag = False
+        flag2 = True
 
-        match file_type:
-            case 1:
-                input_file_path = "assets/secret_files/texts/input1.txt"
-            case 2:
-                input_file_path = "assets/secret_files/images/input1.jpg"
-            case 3:
-                input_file_path = "assets/secret_files/audios/input1.mp3"
-            case 4:
-                input_file_path = "assets/secret_files/videos/input1.mp4"
-            case _:
-                print("Invalid option!")
-                flag = True
+        while (flag2):
+            print("\n1. 10 KB\n2. 50 KB\n3. 100 KB\n4. 500 KB\n5. 1 MB\n6. 5 MB\n7. 10 MB\n")
+            input_size = int(input("Select input size: "))
+
+            if(input_size < 1 or input_size > 7):
+                print("\nInvalid option!")
                 continue
 
-        binary_data = file_to_binary(file_path=input_file_path)
+            flag2 = False
+            
+            match file_type:
+                case 1:
+                    input_file_path = f"assets/secret_files/texts/input{input_size}.txt"
+                case 2:
+                    input_file_path = f"assets/secret_files/images/input{input_size}.jpg"
+                case 3:
+                    input_file_path = f"assets/secret_files/audios/input{input_size}.mp3"
+                case 4:
+                    input_file_path = f"assets/secret_files/videos/input{input_size}.mp4"
 
-        embed_data(cap=cap, writer=writer, binary_data=binary_data)
+            binary_data = file_to_binary(file_path=input_file_path)
+
+            embed_data(cap=cap, writer=writer, binary_data=binary_data)
     
     writer.release()
     cap.release()

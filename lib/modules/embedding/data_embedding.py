@@ -7,7 +7,6 @@ import math
 from preprocessing.encrypt import encrypt_data
 import selection.frame_selection as fs
 import selection.region_selection as rs
-import experiments.experiments as expt 
 import pickle
 import random
 import base64
